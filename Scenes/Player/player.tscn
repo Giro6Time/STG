@@ -1,0 +1,170 @@
+[gd_scene format=3 uid="uid://c3kxnumqg5td3"]
+
+[ext_resource type="Script" uid="uid://c7cn5m74y8xen" path="res://Scenes/Player/player.gd" id="1_uvnfx"]
+[ext_resource type="PackedScene" uid="uid://b8y7yfkgyke6d" path="res://Scenes/PlayerBullet/player_bullet.tscn" id="2_xpcdj"]
+[ext_resource type="Texture2D" uid="uid://3gcura2bnl1h" path="res://Art/SelfAirframe-Nue/NUEleft.png" id="3_htcer"]
+[ext_resource type="Texture2D" uid="uid://tt4e051d4hcl" path="res://Art/SelfAirframe-Nue/NUE-Sheet.png" id="3_xpcdj"]
+[ext_resource type="Texture2D" uid="uid://1xgjamh76rq7" path="res://Art/SelfAirframe-Nue/NUEright.png" id="5_dd0ac"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_l3ax4"]
+
+[sub_resource type="Animation" id="Animation_xpcdj"]
+resource_name = "Idle"
+length = 0.6
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3, 4, 5]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("3_xpcdj")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [6]
+}
+
+[sub_resource type="Animation" id="Animation_0u5uq"]
+resource_name = "MoveLeft"
+length = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:hframes")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("3_htcer")]
+}
+
+[sub_resource type="Animation" id="Animation_jlvik"]
+resource_name = "MoveRight"
+length = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("5_dd0ac")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+
+[sub_resource type="Animation" id="Animation_mtuoh"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:texture")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("3_htcer")]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_htcer"]
+_data = {
+&"Idle": SubResource("Animation_xpcdj"),
+&"MoveLeft": SubResource("Animation_0u5uq"),
+&"MoveRight": SubResource("Animation_jlvik"),
+&"RESET": SubResource("Animation_mtuoh")
+}
+
+[node name="Player" type="CharacterBody2D" unique_id=499312084]
+script = ExtResource("1_uvnfx")
+bullet_scene = ExtResource("2_xpcdj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1977383813]
+shape = SubResource("CircleShape2D_l3ax4")
+
+[node name="ShotPoint" type="Marker2D" parent="." unique_id=1686164365]
+position = Vector2(0, -64)
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1097195982]
+texture_filter = 1
+texture = ExtResource("3_htcer")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1073142691]
+libraries/ = SubResource("AnimationLibrary_htcer")
