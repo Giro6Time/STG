@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://lnx3cwxjmco7"]
+
+[ext_resource type="Script" uid="uid://dlg2h0khlnbsu" path="res://Scenes/BulletLayer/bullet_layer.gd" id="1_6popp"]
+
+[node name="BulletLayer" type="Node2D" unique_id=1501994783]
+script = ExtResource("1_6popp")
+
+[node name="ActiveBullets" type="Node2D" parent="." unique_id=1337153744]
+
+[node name="InactiveBullets" type="Node2D" parent="." unique_id=1161552957]

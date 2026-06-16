@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://b8y7yfkgyke6d"]
+
+[ext_resource type="Script" uid="uid://brdq40aqipgy8" path="res://Scenes/Bullet/BulletBase/bullet_base.gd" id="1_cpngv"]
+[ext_resource type="Texture2D" uid="uid://c7d05pvlrim2h" path="res://Art/SelfAirframe-Nue/bullet.png" id="2_80r1v"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mitqa"]
+
+[node name="BulletBase" type="Area2D" unique_id=1831541475]
+script = ExtResource("1_cpngv")
+speed = null
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1912952450]
+texture = ExtResource("2_80r1v")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=562569582]
+shape = SubResource("CircleShape2D_mitqa")

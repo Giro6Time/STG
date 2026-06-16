@@ -8,7 +8,7 @@ extends CharacterBody2D
 
 @onready var shot_point: Marker2D = $ShotPoint
 @onready var anim_player: AnimationPlayer = $AnimationPlayer
-
+@onready var bullet_layer: BulletLayer = get_tree().current_scene.get_node("BulletLayer")
 var _fire_timer: float = 0.0
 
 func _physics_process(delta: float) -> void:
@@ -45,12 +45,17 @@ func _handle_shoot(delta: float) -> void:
 
 
 func _spawn_bullet() -> void:
-	if bullet_scene == null:
+	if bullet_layer == null:
 		return
-
-	var bullet := bullet_scene.instantiate()
-	get_tree().current_scene.add_child(bullet)
-	bullet.global_position = shot_point.global_position
+	bullet_layer.spawn_bullet(
+		bullet_scene,
+		shot_point.global_position,
+		{
+			"velocity": Vector2.UP,
+			"speed": 900.0,
+			"damage": 1
+		}
+	)
 
 
 func _clamp_to_screen() -> void:
