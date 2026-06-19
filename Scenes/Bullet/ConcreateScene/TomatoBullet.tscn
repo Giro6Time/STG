@@ -56,7 +56,7 @@ animations = [{
 }]
 
 [node name="TomatoBullet" type="Area2D" unique_id=592333131]
-collision_layer = 4
+collision_layer = 8
 script = ExtResource("2_05gia")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1438533747]
@@ -66,4 +66,4 @@ shape = SubResource("CircleShape2D_05gia")
 texture_filter = 1
 sprite_frames = SubResource("SpriteFrames_e58uu")
 autoplay = "default"
-frame_progress = 0.49438626
+frame_progress = 0.16828525
