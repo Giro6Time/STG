@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://bltigg1aeycc0"]
+
+[ext_resource type="Texture2D" uid="uid://c611yib88jih8" path="res://Art/EnemyAirframe-tomato/tomatobullet2-Sheet.png" id="1_2mrdq"]
+[ext_resource type="Script" uid="uid://brdq40aqipgy8" path="res://Scenes/Bullet/BulletBase/bullet_base.gd" id="2_05gia"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_05gia"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vs6cp"]
+atlas = ExtResource("1_2mrdq")
+region = Rect2(0, 0, 15, 15)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6puvw"]
+atlas = ExtResource("1_2mrdq")
+region = Rect2(15, 0, 15, 15)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fmxvt"]
+atlas = ExtResource("1_2mrdq")
+region = Rect2(30, 0, 15, 15)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1fsw4"]
+atlas = ExtResource("1_2mrdq")
+region = Rect2(45, 0, 15, 15)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6a7nq"]
+atlas = ExtResource("1_2mrdq")
+region = Rect2(60, 0, 15, 15)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ofgnn"]
+atlas = ExtResource("1_2mrdq")
+region = Rect2(75, 0, 15, 15)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_e58uu"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vs6cp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6puvw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fmxvt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1fsw4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6a7nq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ofgnn")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 12.0
+}]
+
+[node name="TomatoBullet" type="Area2D" unique_id=592333131]
+collision_layer = 4
+script = ExtResource("2_05gia")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1438533747]
+shape = SubResource("CircleShape2D_05gia")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=472613222]
+texture_filter = 1
+sprite_frames = SubResource("SpriteFrames_e58uu")
+autoplay = "default"
+frame_progress = 0.49438626

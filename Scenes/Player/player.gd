@@ -1,8 +1,5 @@
 extends CharacterBody2D
 
-const COLLISION_LAYER_PLAYER_BULLET := 2
-const COLLISION_MASK_ENEMY := 4
-
 @export var move_speed: float = 320.0
 @export var slow_speed: float = 140.0
 @export var max_hp: int = 3
@@ -11,6 +8,7 @@ const COLLISION_MASK_ENEMY := 4
 @export var fire_interval: float = 0.08
 
 @onready var shot_point: Marker2D = $ShotPoint
+@onready var hb_sprite: Sprite2D = $HBSprite
 @onready var anim_player: AnimationPlayer = $AnimationPlayer
 @onready var bullet_layer: BulletLayer = get_tree().current_scene.get_node("BulletLayer")
 var _fire_timer: float = 0.0
@@ -33,10 +31,11 @@ func _handle_move(delta: float) -> void:
 		"move_up",
 		"move_down"
 	)
-	var current_speed := slow_speed if Input.is_action_pressed("slow_move") else move_speed
+	var slow_move: bool = Input.is_action_pressed("slow_move")
+	var current_speed := slow_speed if slow_move else move_speed
 	velocity = input_dir * current_speed
 
-	_handle_animation(input_dir.x)
+	_handle_animation(input_dir.x, slow_move)
 	move_and_slide()
 	_clamp_to_screen()
 
@@ -64,8 +63,8 @@ func _spawn_bullet() -> void:
 			"velocity": Vector2.UP,
 			"speed": 900.0,
 			"damage": 1,
-			"collision_layer": COLLISION_LAYER_PLAYER_BULLET,
-			"collision_mask": COLLISION_MASK_ENEMY
+			"collision_layer": CollisionLayers.PLAYER_BULLET,
+			"collision_mask": CollisionLayers.ENEMY
 		}
 	)
 
@@ -87,7 +86,12 @@ func _clamp_to_screen() -> void:
 	position.x = clamp(position.x, 0.0, viewport_rect.size.x)
 	position.y = clamp(position.y, 0.0, viewport_rect.size.y)
 	
-func _handle_animation(x_direction: float) -> void:
+func _handle_animation(x_direction: float, slow: bool) -> void:
+	if (slow):
+		hb_sprite.visible = true
+	else:
+		hb_sprite.visible = false
+
 	if (x_direction - 0.001 > 0):
 		anim_player.play("MoveRight")
 	elif (x_direction + 0.001 < 0):
