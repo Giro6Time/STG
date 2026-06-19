@@ -1,7 +1,11 @@
 extends CharacterBody2D
 
+const COLLISION_LAYER_PLAYER_BULLET := 2
+const COLLISION_MASK_ENEMY := 4
+
 @export var move_speed: float = 320.0
 @export var slow_speed: float = 140.0
+@export var max_hp: int = 3
 
 @export var bullet_scene: PackedScene
 @export var fire_interval: float = 0.08
@@ -10,6 +14,12 @@ extends CharacterBody2D
 @onready var anim_player: AnimationPlayer = $AnimationPlayer
 @onready var bullet_layer: BulletLayer = get_tree().current_scene.get_node("BulletLayer")
 var _fire_timer: float = 0.0
+var hp: int = 0
+
+
+func _ready() -> void:
+	hp = max_hp
+
 
 func _physics_process(delta: float) -> void:
 	_handle_move(delta)
@@ -53,9 +63,23 @@ func _spawn_bullet() -> void:
 		{
 			"velocity": Vector2.UP,
 			"speed": 900.0,
-			"damage": 1
+			"damage": 1,
+			"collision_layer": COLLISION_LAYER_PLAYER_BULLET,
+			"collision_mask": COLLISION_MASK_ENEMY
 		}
 	)
+
+
+func take_damage(damage: int) -> void:
+	hp -= damage
+	print("Player HP: ", hp)
+
+	if hp <= 0:
+		die()
+
+
+func die() -> void:
+	queue_free()
 
 
 func _clamp_to_screen() -> void:

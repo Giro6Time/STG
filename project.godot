@@ -10,9 +10,9 @@ config_version=5
 
 [application]
 
-config/name="无聊的飞"
+config/name="STG"
 run/main_scene="uid://cqfulyfyl6c2q"
-config/features=PackedStringArray("4.6", "Forward Plus")
+config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
 [display]

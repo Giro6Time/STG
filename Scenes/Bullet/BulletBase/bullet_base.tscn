@@ -6,8 +6,9 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_mitqa"]
 
 [node name="BulletBase" type="Area2D" unique_id=1831541475]
+collision_layer = 2
+collision_mask = 4
 script = ExtResource("1_cpngv")
-speed = null
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1912952450]
 texture = ExtResource("2_80r1v")

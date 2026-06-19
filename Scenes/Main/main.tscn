@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://c3kxnumqg5td3" path="res://Scenes/Player/player.tscn" id="1_1r6ip"]
 [ext_resource type="PackedScene" uid="uid://lnx3cwxjmco7" path="res://Scenes/BulletLayer/bullet_layer.tscn" id="2_lixft"]
+[ext_resource type="PackedScene" uid="uid://c8puaeaeh2g33" path="res://Scenes/Enemy/enemy_base.tscn" id="3_qw60k"]
 
 [node name="Main" type="Node2D" unique_id=887430896]
 
@@ -9,3 +10,6 @@
 position = Vector2(315, 277)
 
 [node name="BulletLayer" parent="." unique_id=1501994783 instance=ExtResource("2_lixft")]
+
+[node name="EnemyBase" parent="." unique_id=1784291923 instance=ExtResource("3_qw60k")]
+position = Vector2(316, 134)

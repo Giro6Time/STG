@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://c8puaeaeh2g33"]
+
+[ext_resource type="Script" uid="uid://d28obscgjwesl" path="res://Scenes/Enemy/enemy_base.gd" id="1_1rt0e"]
+[ext_resource type="Texture2D" uid="uid://cdrsd7hitcj10" path="res://Art/EnemyAirframe-tomato/tomatoenemy.png" id="2_tomato"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_enemy"]
+radius = 16.0
+
+[node name="EnemyBase" type="Area2D" unique_id=1784291923]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_1rt0e")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=932045059]
+texture = ExtResource("2_tomato")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=179336533]
+shape = SubResource("CircleShape2D_enemy")

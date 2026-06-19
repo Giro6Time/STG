@@ -153,6 +153,8 @@ _data = {
 }
 
 [node name="Player" type="CharacterBody2D" unique_id=499312084]
+collision_layer = 1
+collision_mask = 12
 script = ExtResource("1_uvnfx")
 bullet_scene = ExtResource("2_xpcdj")
 
