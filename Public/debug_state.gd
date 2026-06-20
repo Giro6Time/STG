@@ -34,6 +34,7 @@ func set_debug_enabled(enabled: bool) -> void:
 
 	debug_enabled = enabled
 	debug_enabled_changed.emit(debug_enabled)
+	DebugHelper.queue_debug_collision_redraw(get_tree())
 
 
 func toggle_logs() -> void:
@@ -54,6 +55,7 @@ func toggle_bullet_count() -> void:
 func toggle_collision_shapes() -> void:
 	show_collision_shapes = not show_collision_shapes
 	options_changed.emit()
+	DebugHelper.queue_debug_collision_redraw(get_tree())
 
 
 func debug_log(message: String) -> void:
