@@ -16,6 +16,7 @@ var hp: int = 0
 
 
 func _ready() -> void:
+	DebugHelper.register_debug_drawable(self)
 	hp = max_hp
 
 
@@ -71,6 +72,7 @@ func _spawn_bullet() -> void:
 
 func take_damage(damage: int) -> void:
 	hp -= damage
+	DebugState.debug_log("Player hit: %d/%d (-%d)" % [hp, max_hp, damage])
 	print("Player HP: ", hp)
 
 	if hp <= 0:
@@ -98,3 +100,7 @@ func _handle_animation(x_direction: float, slow: bool) -> void:
 		anim_player.play("MoveLeft")
 	else:
 		anim_player.play("Idle")
+
+
+func _draw() -> void:
+	DebugHelper.draw_collision_shape(self, self as CharacterBody2D)

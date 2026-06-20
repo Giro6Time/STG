@@ -14,6 +14,8 @@ var hp: int = 0
 var timer: float = 0
 
 func _ready() -> void:
+	DebugHelper.register_debug_drawable(self)
+	add_to_group("enemies")
 	hp = max_hp
 	body_entered.connect(_on_body_entered)
 	
@@ -41,6 +43,7 @@ func delay_shooting(delta: float) -> bool:
 
 func take_damage(damage: int) -> void:
 	hp -= damage
+	DebugState.debug_log("Enemy hit: %d/%d (-%d)" % [hp, max_hp, damage])
 	print("Enemy HP: ", hp)
 
 	if hp <= 0:
@@ -48,9 +51,14 @@ func take_damage(damage: int) -> void:
 
 
 func die() -> void:
+	DebugState.debug_log("Enemy destroyed")
 	queue_free()
 
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.has_method("take_damage"):
 		body.take_damage(contact_damage)
+
+
+func _draw() -> void:
+	DebugHelper.draw_collision_shape(self, self as Area2D)

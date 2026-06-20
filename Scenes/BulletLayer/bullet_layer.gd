@@ -22,6 +22,7 @@ func spawn_bullet(
 	active_bullets.add_child(bullet)
 
 	bullet.setup(self, spawn_position, init_data)
+	DebugState.debug_log("Spawn bullet: %s" % bullet.name)
 
 	return bullet
 
@@ -45,6 +46,7 @@ func recycle_bullet(bullet: BulletBase) -> void:
 		_pools[bullet_scene] = []
 
 	_pools[bullet_scene].append(bullet)
+	DebugState.debug_log("Recycle bullet: %s" % bullet.name)
 
 
 func clear_all() -> void:
@@ -88,3 +90,14 @@ func _cleanup_out_of_bounds() -> void:
 			var bullet := child as BulletBase
 			if not bounds.has_point(bullet.global_position):
 				bullet.recycle()
+
+func get_active_bullet_count() -> int:
+	return active_bullets.get_child_count()
+
+
+func get_inactive_bullet_count() -> int:
+	return inactive_bullets.get_child_count()
+
+
+func get_total_bullet_count() -> int:
+	return get_active_bullet_count() + get_inactive_bullet_count()
