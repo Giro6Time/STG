@@ -1,0 +1,142 @@
+[gd_scene format=3 uid="uid://2r1iin0pml1l"]
+
+[ext_resource type="Script" uid="uid://dr8qon4el35tg" path="res://Scenes/Boss/boss_base.gd" id="1_boss_script"]
+[ext_resource type="Texture2D" uid="uid://cdrsd7hitcj10" path="res://Art/EnemyAirframe-tomato/tomatoenemy.png" id="2_boss_texture"]
+[ext_resource type="PackedScene" path="res://Scenes/Boss/boss_health_bar.tscn" id="3_health_bar"]
+[ext_resource type="PackedScene" uid="uid://bltigg1aeycc0" path="res://Scenes/Bullet/ConcreateScene/TomatoBullet.tscn" id="4_bullet"]
+[ext_resource type="Script" uid="uid://bp4vs4wmqybco" path="res://Scenes/Boss/phases/boss_phase.gd" id="5_phase"]
+[ext_resource type="Script" uid="uid://bcd3etuwv4g48" path="res://Scenes/Boss/patterns/attack/boss_aimed_shot_pattern.gd" id="6_aimed_shot"]
+[ext_resource type="Script" uid="uid://bpoyqw0oqg6eh" path="res://Scenes/Boss/patterns/movement/boss_horizontal_sweep_movement.gd" id="7_horizontal_sweep"]
+[ext_resource type="Script" path="res://Scenes/Boss/phase_state_machine.gd" id="8_phase_machine"]
+[ext_resource type="Script" path="res://Scenes/Boss/patterns/boss_wait_pattern.gd" id="9_wait_pattern"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss"]
+radius = 32.0
+
+[node name="BossBase" type="Area2D" unique_id=1879226644]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_boss_script")
+bullet_scene = ExtResource("4_bullet")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2087465002]
+scale = Vector2(2, 2)
+texture = ExtResource("2_boss_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1982730130]
+shape = SubResource("CircleShape2D_boss")
+
+[node name="BossHealthBar" parent="." unique_id=1640024717 instance=ExtResource("3_health_bar")]
+
+[node name="PhaseStateMachine" type="Node" parent="." unique_id=950245337]
+script = ExtResource("8_phase_machine")
+phase_paths = Array[NodePath]([NodePath("../Phases/IntroPhase"), NodePath("../Phases/Phase1"), NodePath("../Phases/Phase1To2Transition"), NodePath("../Phases/Phase2"), NodePath("../Phases/Phase2To3Transition"), NodePath("../Phases/Phase3")])
+
+[node name="Phases" type="Node" parent="." unique_id=1797658303]
+
+[node name="IntroPhase" type="Node" parent="Phases" unique_id=1202661929]
+script = ExtResource("5_phase")
+phase_id = 0
+phase_name = "Intro"
+auto_transition_after = 0.8
+transition_keys = Array[String](["next"])
+transition_target_phase_ids = Array[int]([1])
+
+[node name="Phase1" type="Node" parent="Phases" unique_id=90071442]
+script = ExtResource("5_phase")
+phase_name = "Phase 1"
+pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep"), NodePath("Patterns/AimedShot")])
+hp_ratio_below = 0.66
+transition_keys = Array[String](["hp_threshold"])
+transition_target_phase_ids = Array[int]([101])
+
+[node name="Patterns" type="Node" parent="Phases/Phase1" unique_id=1825118253]
+
+[node name="HorizontalSweep" type="Node" parent="Phases/Phase1/Patterns" unique_id=1343747162]
+script = ExtResource("7_horizontal_sweep")
+amplitude = 50.0
+sweep_speed = 1.2
+pattern_name = "Phase1 Horizontal Sweep"
+
+[node name="AimedShot" type="Node" parent="Phases/Phase1/Patterns" unique_id=235729419]
+script = ExtResource("6_aimed_shot")
+fire_interval = 1.2
+bullet_speed = 180.0
+pattern_name = "Phase1 Aimed Shot"
+
+[node name="Phase1To2Transition" type="Node" parent="Phases"]
+script = ExtResource("5_phase")
+phase_id = 101
+phase_name = "Transition 1 -> 2"
+pattern_paths = Array[NodePath]([NodePath("Patterns/Wait")])
+auto_transition_when_patterns_completed = true
+transition_keys = Array[String](["next"])
+transition_target_phase_ids = Array[int]([2])
+
+[node name="Patterns" type="Node" parent="Phases/Phase1To2Transition"]
+
+[node name="Wait" type="Node" parent="Phases/Phase1To2Transition/Patterns"]
+script = ExtResource("9_wait_pattern")
+pattern_name = "Transition 1 -> 2 Wait"
+required_for_phase_completion = true
+duration = 1.0
+
+[node name="Phase2" type="Node" parent="Phases" unique_id=1967667671]
+script = ExtResource("5_phase")
+phase_id = 2
+phase_name = "Phase 2"
+pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep"), NodePath("Patterns/AimedShot")])
+hp_ratio_below = 0.33
+transition_keys = Array[String](["hp_threshold"])
+transition_target_phase_ids = Array[int]([102])
+
+[node name="Patterns" type="Node" parent="Phases/Phase2" unique_id=963495128]
+
+[node name="HorizontalSweep" type="Node" parent="Phases/Phase2/Patterns" unique_id=1727985611]
+script = ExtResource("7_horizontal_sweep")
+amplitude = 90.0
+sweep_speed = 1.6
+pattern_name = "Phase2 Wide Horizontal Sweep"
+
+[node name="AimedShot" type="Node" parent="Phases/Phase2/Patterns" unique_id=893699441]
+script = ExtResource("6_aimed_shot")
+fire_interval = 0.75
+bullet_speed = 230.0
+pattern_name = "Phase2 Faster Aimed Shot"
+
+[node name="Phase2To3Transition" type="Node" parent="Phases"]
+script = ExtResource("5_phase")
+phase_id = 102
+phase_name = "Transition 2 -> 3"
+pattern_paths = Array[NodePath]([NodePath("Patterns/Wait")])
+auto_transition_when_patterns_completed = true
+transition_keys = Array[String](["next"])
+transition_target_phase_ids = Array[int]([3])
+
+[node name="Patterns" type="Node" parent="Phases/Phase2To3Transition"]
+
+[node name="Wait" type="Node" parent="Phases/Phase2To3Transition/Patterns"]
+script = ExtResource("9_wait_pattern")
+pattern_name = "Transition 2 -> 3 Wait"
+required_for_phase_completion = true
+duration = 1.0
+
+[node name="Phase3" type="Node" parent="Phases" unique_id=506635529]
+script = ExtResource("5_phase")
+phase_id = 3
+phase_name = "Phase 3"
+pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep"), NodePath("Patterns/AimedShot")])
+
+[node name="Patterns" type="Node" parent="Phases/Phase3" unique_id=1505572163]
+
+[node name="HorizontalSweep" type="Node" parent="Phases/Phase3/Patterns" unique_id=8138217]
+script = ExtResource("7_horizontal_sweep")
+amplitude = 120.0
+sweep_speed = 2.1
+pattern_name = "Phase3 Aggressive Horizontal Sweep"
+
+[node name="AimedShot" type="Node" parent="Phases/Phase3/Patterns" unique_id=1659917956]
+script = ExtResource("6_aimed_shot")
+fire_interval = 0.45
+bullet_speed = 280.0
+pattern_name = "Phase3 Rapid Aimed Shot"
