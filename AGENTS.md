@@ -17,6 +17,7 @@ Before starting any new development task, Codex should read this file and follow
 * Be extremely careful when editing `.tscn` files. Do not break Godot-generated resource references.
 * Documentation intended for AI agents should be written in English.
 * Documentation, comments, README files, and other developer-facing text should be written in Chinese.
+* 新增到玩法脚本里的代码注释应使用中文，优先解释设计意图、玩法含义或不明显的行为，不要重复描述简单代码本身。
 
 ---
 
@@ -150,7 +151,44 @@ func on_despawned() -> void:
 
 * Check the current Git branch.
 * Check the working tree status.
+* Make sure current
+## Git Workflow
 
+This project follows a simplified Git Flow style.
+
+### Branch Roles
+
+- `main`
+  - Represents stable milestone releases.
+  - Only updated when a major development stage is completed.
+  - Typically corresponds to a playable/demo/release build update.
+  - Avoid committing daily development work directly to `main`.
+
+- `develop`
+  - Primary integration branch for active development.
+  - All completed features should eventually be merged into `develop`.
+  - Daily development progress is tracked here.
+
+### Feature Development
+
+For every new feature, bugfix, or experiment:
+
+1. Create a new branch from `develop`.
+2. Implement the feature within that branch.
+3. Keep changes focused on a single task whenever possible.
+4. Open a Pull Request targeting `develop`.
+5. Perform code review before merging.
+6. Merge into `develop` after the feature is verified.
+
+Example:
+
+```text
+develop
+ ├─ feature/player-shooting
+ ├─ feature/enemy-spawn
+ ├─ feature/debug-overlay
+ └─ fix/bullet-despawn
+```
 ## During Development
 
 * If the user requests phased implementation, complete one phase at a time.

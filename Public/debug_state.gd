@@ -59,11 +59,12 @@ func toggle_collision_shapes() -> void:
 
 
 func debug_log(message: String) -> void:
-	if not can_use_debug() or not debug_enabled or not show_logs:
+	if not can_use_debug() or not show_logs:
 		return
 
 	logs.append(message)
 	while logs.size() > MAX_LOG_LINES:
 		logs.pop_front()
 
-	log_added.emit(message)
+	if debug_enabled:
+		log_added.emit(message)
