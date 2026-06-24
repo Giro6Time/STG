@@ -10,6 +10,7 @@ var _pools: Dictionary = {}
 var _scene_by_bullet: Dictionary = {}
 
 
+# 从对象池取得子弹，初始化后放入活跃节点。
 func spawn_bullet(
 	bullet_scene: PackedScene,
 	spawn_position: Vector2,
@@ -27,6 +28,7 @@ func spawn_bullet(
 	return bullet
 
 
+# 把子弹从活跃列表移回对应场景的对象池。
 func recycle_bullet(bullet: BulletBase) -> void:
 	if bullet == null:
 		return
@@ -49,15 +51,18 @@ func recycle_bullet(bullet: BulletBase) -> void:
 	DebugState.debug_log("Recycle bullet: %s" % bullet.name)
 
 
+# 回收当前所有活跃子弹，用于清屏或阶段切换。
 func clear_all() -> void:
 	for child in active_bullets.get_children():
 		if child is BulletBase:
 			child.recycle()
 
 
+# 每帧清理飞出视口边界的子弹。
 func _process(_delta: float) -> void:
 	_cleanup_out_of_bounds()
 
+# 优先复用对象池子弹，池空时实例化新子弹。
 func _get_bullet_from_pool(bullet_scene: PackedScene) -> BulletBase:
 	if not _pools.has(bullet_scene):
 		_pools[bullet_scene] = []
@@ -78,6 +83,7 @@ func _get_bullet_from_pool(bullet_scene: PackedScene) -> BulletBase:
 	return bullet
 
 
+# 检测活跃子弹是否离开扩展边界并回收。
 func _cleanup_out_of_bounds() -> void:
 	var viewport_size := get_viewport_rect().size
 	var bounds := Rect2(
@@ -91,13 +97,16 @@ func _cleanup_out_of_bounds() -> void:
 			if not bounds.has_point(bullet.global_position):
 				bullet.recycle()
 
+# 返回当前活跃子弹数量供调试显示。
 func get_active_bullet_count() -> int:
 	return active_bullets.get_child_count()
 
 
+# 返回对象池中待复用子弹数量供调试显示。
 func get_inactive_bullet_count() -> int:
 	return inactive_bullets.get_child_count()
 
 
+# 返回活跃与待复用子弹总数。
 func get_total_bullet_count() -> int:
 	return get_active_bullet_count() + get_inactive_bullet_count()

@@ -21,6 +21,7 @@ var _patterns: Array[BossPattern] = []
 var _is_active: bool = false
 
 
+# 进入阶段时解析并启动本阶段配置的所有 Pattern。
 func enter_state(owner: Node) -> void:
 	var boss: Boss = owner as Boss
 	if boss == null:
@@ -38,6 +39,7 @@ func enter_state(owner: Node) -> void:
 		pattern.start_pattern(_boss)
 
 
+# 逐帧更新尚未完成的阶段 Pattern。
 func update_phase(runtime_data: BossPhaseRuntimeData) -> void:
 	if not _is_active:
 		return
@@ -48,6 +50,7 @@ func update_phase(runtime_data: BossPhaseRuntimeData) -> void:
 			pattern.update_pattern(runtime_data.delta)
 
 
+# 根据时间、血量和 Pattern 完成状态决定是否转场。
 func evaluate_transition(runtime_data: BossPhaseRuntimeData) -> String:
 	if not _is_active:
 		return NO_TRANSITION_KEY
@@ -64,6 +67,7 @@ func evaluate_transition(runtime_data: BossPhaseRuntimeData) -> String:
 	return NO_TRANSITION_KEY
 
 
+# 把转场 key 映射为目标阶段 id。
 func get_transition_target_phase_id(transition_key: String) -> int:
 	for index in range(transition_keys.size()):
 		var configured_key: String = transition_keys[index]
@@ -75,6 +79,7 @@ func get_transition_target_phase_id(transition_key: String) -> int:
 	return -1
 
 
+# 离开阶段时停止所有正在运行的 Pattern。
 func exit_state() -> void:
 	if not _is_active:
 		return
@@ -90,6 +95,7 @@ func exit_state() -> void:
 	_boss = null
 
 
+# 返回阶段显示名称，未配置时使用默认编号。
 func get_phase_label() -> String:
 	if phase_name != "":
 		return phase_name
@@ -97,6 +103,7 @@ func get_phase_label() -> String:
 	return "Phase %d" % phase_id
 
 
+# 检查所有必需 Pattern 是否已经完成。
 func _required_patterns_completed() -> bool:
 	var has_required_pattern: bool = false
 
@@ -110,6 +117,7 @@ func _required_patterns_completed() -> bool:
 	return has_required_pattern
 
 
+# 根据配置的 NodePath 找到本阶段实际运行的 Pattern。
 func _resolve_patterns() -> Array[BossPattern]:
 	var result: Array[BossPattern] = []
 

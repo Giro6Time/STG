@@ -7,8 +7,9 @@
 [ext_resource type="Script" uid="uid://bp4vs4wmqybco" path="res://Scenes/Boss/phases/boss_phase.gd" id="5_phase"]
 [ext_resource type="Script" uid="uid://bcd3etuwv4g48" path="res://Scenes/Boss/patterns/attack/boss_aimed_shot_pattern.gd" id="6_aimed_shot"]
 [ext_resource type="Script" uid="uid://bpoyqw0oqg6eh" path="res://Scenes/Boss/patterns/movement/boss_horizontal_sweep_movement.gd" id="7_horizontal_sweep"]
-[ext_resource type="Script" path="res://Scenes/Boss/phase_state_machine.gd" id="8_phase_machine"]
-[ext_resource type="Script" path="res://Scenes/Boss/patterns/boss_wait_pattern.gd" id="9_wait_pattern"]
+[ext_resource type="Script" uid="uid://c4d7mx1slpdhi" path="res://Scenes/Boss/phase_state_machine.gd" id="8_phase_machine"]
+[ext_resource type="Script" uid="uid://c7ulmsc1vhggn" path="res://Scenes/Boss/patterns/boss_wait_pattern.gd" id="9_wait_pattern"]
+[ext_resource type="Script" uid="uid://bfvjn86vf6mky" path="res://Scenes/Boss/patterns/attack/boss_radial_wave_pattern.gd" id="10_radial_wave"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_boss"]
 radius = 32.0
@@ -45,7 +46,7 @@ transition_target_phase_ids = Array[int]([1])
 [node name="Phase1" type="Node" parent="Phases" unique_id=90071442]
 script = ExtResource("5_phase")
 phase_name = "Phase 1"
-pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep"), NodePath("Patterns/AimedShot")])
+pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep"), NodePath("Patterns/RadialWave")])
 hp_ratio_below = 0.66
 transition_keys = Array[String](["hp_threshold"])
 transition_target_phase_ids = Array[int]([101])
@@ -58,13 +59,12 @@ amplitude = 50.0
 sweep_speed = 1.2
 pattern_name = "Phase1 Horizontal Sweep"
 
-[node name="AimedShot" type="Node" parent="Phases/Phase1/Patterns" unique_id=235729419]
-script = ExtResource("6_aimed_shot")
-fire_interval = 1.2
-bullet_speed = 180.0
-pattern_name = "Phase1 Aimed Shot"
+[node name="RadialWave" type="Node" parent="Phases/Phase1/Patterns" unique_id=235729419]
+script = ExtResource("10_radial_wave")
+bullet_scene = ExtResource("4_bullet")
+pattern_name = "Phase1 Radial Wave"
 
-[node name="Phase1To2Transition" type="Node" parent="Phases"]
+[node name="Phase1To2Transition" type="Node" parent="Phases" unique_id=117703090]
 script = ExtResource("5_phase")
 phase_id = 101
 phase_name = "Transition 1 -> 2"
@@ -73,15 +73,14 @@ auto_transition_when_patterns_completed = true
 transition_keys = Array[String](["next"])
 transition_target_phase_ids = Array[int]([2])
 
-[node name="Patterns" type="Node" parent="Phases/Phase1To2Transition"]
+[node name="Patterns" type="Node" parent="Phases/Phase1To2Transition" unique_id=260430431]
 
-[node name="Wait" type="Node" parent="Phases/Phase1To2Transition/Patterns"]
+[node name="Wait" type="Node" parent="Phases/Phase1To2Transition/Patterns" unique_id=562354994]
 script = ExtResource("9_wait_pattern")
 pattern_name = "Transition 1 -> 2 Wait"
 required_for_phase_completion = true
-duration = 1.0
 
-[node name="Phase2" type="Node" parent="Phases" unique_id=1967667671]
+[node name="Phase2" type="Node" parent="Phases" unique_id=1487930645]
 script = ExtResource("5_phase")
 phase_id = 2
 phase_name = "Phase 2"
@@ -90,21 +89,20 @@ hp_ratio_below = 0.33
 transition_keys = Array[String](["hp_threshold"])
 transition_target_phase_ids = Array[int]([102])
 
-[node name="Patterns" type="Node" parent="Phases/Phase2" unique_id=963495128]
+[node name="Patterns" type="Node" parent="Phases/Phase2" unique_id=103665020]
 
-[node name="HorizontalSweep" type="Node" parent="Phases/Phase2/Patterns" unique_id=1727985611]
+[node name="HorizontalSweep" type="Node" parent="Phases/Phase2/Patterns" unique_id=394270007]
 script = ExtResource("7_horizontal_sweep")
 amplitude = 90.0
 sweep_speed = 1.6
 pattern_name = "Phase2 Wide Horizontal Sweep"
 
-[node name="AimedShot" type="Node" parent="Phases/Phase2/Patterns" unique_id=893699441]
+[node name="AimedShot" type="Node" parent="Phases/Phase2/Patterns" unique_id=1666492501]
 script = ExtResource("6_aimed_shot")
 fire_interval = 0.75
 bullet_speed = 230.0
 pattern_name = "Phase2 Faster Aimed Shot"
-
-[node name="Phase2To3Transition" type="Node" parent="Phases"]
+[node name="Phase2To3Transition" type="Node" parent="Phases" unique_id=1290898685]
 script = ExtResource("5_phase")
 phase_id = 102
 phase_name = "Transition 2 -> 3"
@@ -113,13 +111,12 @@ auto_transition_when_patterns_completed = true
 transition_keys = Array[String](["next"])
 transition_target_phase_ids = Array[int]([3])
 
-[node name="Patterns" type="Node" parent="Phases/Phase2To3Transition"]
+[node name="Patterns" type="Node" parent="Phases/Phase2To3Transition" unique_id=1223232267]
 
-[node name="Wait" type="Node" parent="Phases/Phase2To3Transition/Patterns"]
+[node name="Wait" type="Node" parent="Phases/Phase2To3Transition/Patterns" unique_id=1075916577]
 script = ExtResource("9_wait_pattern")
 pattern_name = "Transition 2 -> 3 Wait"
 required_for_phase_completion = true
-duration = 1.0
 
 [node name="Phase3" type="Node" parent="Phases" unique_id=506635529]
 script = ExtResource("5_phase")

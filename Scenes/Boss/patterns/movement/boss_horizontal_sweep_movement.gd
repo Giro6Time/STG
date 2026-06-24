@@ -8,6 +8,7 @@ var _origin_position: Vector2 = Vector2.ZERO
 var _elapsed: float = 0.0
 
 
+# 记录 Boss 初始位置，作为水平往复运动中心。
 func start_pattern(boss: Boss) -> void:
 	super.start_pattern(boss)
 
@@ -16,6 +17,7 @@ func start_pattern(boss: Boss) -> void:
 		_elapsed = 0.0
 
 
+# 用正弦曲线驱动 Boss 在水平方向往复移动。
 func update_pattern(delta: float) -> void:
 	if not _is_running:
 		return

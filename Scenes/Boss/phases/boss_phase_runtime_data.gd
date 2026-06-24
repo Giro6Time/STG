@@ -10,6 +10,7 @@ var phase_elapsed: float = 0.0
 var player: Node2D
 
 
+# 封装阶段本帧需要读取的 Boss、时间和血量比例数据。
 func setup(source_boss: Boss, frame_delta: float, elapsed: float) -> void:
 	boss = source_boss
 	delta = frame_delta

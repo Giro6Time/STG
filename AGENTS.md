@@ -18,6 +18,7 @@ Before starting any new development task, Codex should read this file and follow
 * Documentation intended for AI agents should be written in English.
 * Documentation, comments, README files, and other developer-facing text should be written in Chinese.
 * 新增到玩法脚本里的代码注释应使用中文，优先解释设计意图、玩法含义或不明显的行为，不要重复描述简单代码本身。
+* 每个 GDScript 函数至少需要有一条中文注释；注释可以放在函数定义前，说明职责、调用时机或关键行为。
 
 ---
 
