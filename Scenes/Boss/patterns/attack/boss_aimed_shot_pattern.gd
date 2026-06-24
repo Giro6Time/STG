@@ -25,7 +25,7 @@ func update_pattern(delta: float) -> void:
 
 	# 当前先做“朝玩家方向发射一发子弹”，后续可扩展成多发、扇形或预判射击。
 	var direction: Vector2 = _get_direction_to_player()
-	spawn_enemy_bullet(_boss.global_position, direction, bullet_speed, damage)
+	fire_bullet(_boss.global_position, direction, bullet_speed, damage)
 	DebugState.debug_log("Boss attack fire: %s" % get_pattern_label())
 
 

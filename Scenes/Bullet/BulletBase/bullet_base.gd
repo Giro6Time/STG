@@ -3,6 +3,7 @@ extends Area2D
 
 var velocity: Vector2 = Vector2.ZERO
 var speed: float = 0.0
+var acceleration: float = 0.0
 var damage: int = 1
 
 var _owner_layer: BulletLayer
@@ -21,6 +22,7 @@ func setup(owner_layer: BulletLayer, spawn_position: Vector2, init_data: Diction
 
 	velocity = init_data.get("velocity", Vector2.UP)
 	speed = init_data.get("speed", 600.0)
+	acceleration = init_data.get("acceleration", 0.0)
 	damage = init_data.get("damage", 1)
 	collision_layer = init_data.get("collision_layer", collision_layer)
 	collision_mask = init_data.get("collision_mask", collision_mask)
@@ -57,6 +59,7 @@ func _do_recycle() ->void:
 		_owner_layer.recycle_bullet(self)
 
 func _process(delta: float) -> void:
+	speed = max(speed + acceleration * delta, 0.0)
 	global_position += velocity.normalized() * speed * delta
 
 

@@ -64,26 +64,19 @@ func die() -> void:
 	queue_free()
 
 
-func spawn_enemy_bullet(spawn_position: Vector2, direction: Vector2, speed: float, damage: int) -> void:
-	if bullet_layer == null:
-		DebugState.debug_log("Boss bullet layer missing")
-		return
+func get_bullet_layer() -> BulletLayer:
+	return bullet_layer
 
-	if bullet_scene == null:
-		DebugState.debug_log("Boss bullet scene missing")
-		return
 
-	bullet_layer.spawn_bullet(
-		bullet_scene,
-		spawn_position,
-		{
-			"velocity": direction,
-			"speed": speed,
-			"damage": damage,
-			"collision_layer": CollisionLayers.ENEMY_BULLET,
-			"collision_mask": CollisionLayers.PLAYER
-		}
-	)
+func get_bullet_scene() -> PackedScene:
+	return bullet_scene
+
+
+func get_enemy_bullet_init_data() -> Dictionary:
+	return {
+		"collision_layer": CollisionLayers.ENEMY_BULLET,
+		"collision_mask": CollisionLayers.PLAYER
+	}
 
 
 func get_player() -> Node2D:
