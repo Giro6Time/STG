@@ -9,6 +9,7 @@ extends Resource
 @export var fallback_direction: Vector2 = Vector2.DOWN
 
 
+# 把曲线采样点转换为出生位置和方向后生成子弹。
 func spawn_from_curve(
 	bullet_layer: BulletLayer,
 	bullet_scene: PackedScene,
@@ -26,6 +27,7 @@ func spawn_from_curve(
 	return spawn_bullet(bullet_layer, bullet_scene, origin + local_point, direction, base_init_data)
 
 
+# 合并通用初始化数据和发射参数，并交给 BulletLayer 创建子弹。
 func spawn_bullet(
 	bullet_layer: BulletLayer,
 	bullet_scene: PackedScene,

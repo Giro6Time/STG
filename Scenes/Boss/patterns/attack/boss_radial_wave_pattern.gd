@@ -17,6 +17,7 @@ var _curve: CircleParametricCurve = CircleParametricCurve.new()
 var _sampler: UniformParameterSampler = UniformParameterSampler.new()
 
 
+# 启动圆形波次弹幕并设置首次发射计时。
 func start_pattern(boss: Boss) -> void:
 	super.start_pattern(boss)
 	_configure_emitter()
@@ -26,6 +27,7 @@ func start_pattern(boss: Boss) -> void:
 		_fire_timer = fire_interval
 
 
+# 按发射间隔触发一圈径向弹幕。
 func update_pattern(delta: float) -> void:
 	if not _is_running:
 		return
@@ -38,6 +40,7 @@ func update_pattern(delta: float) -> void:
 	fire_wave()
 
 
+# 用通用 Emitter 从 Boss 位置发射一组圆形弹幕。
 func fire_wave() -> bool:
 	if not _is_running:
 		return false
@@ -54,6 +57,7 @@ func fire_wave() -> bool:
 	DebugState.debug_log("Boss radial wave fire: %s" % get_pattern_label())
 	return true
 
+# 把导出参数同步到曲线、采样器和发射规则。
 func _configure_emitter() -> void:
 	_curve.radius = spawn_radius
 	_curve.angle_offset_degrees = angle_offset_degrees

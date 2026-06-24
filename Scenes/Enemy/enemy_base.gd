@@ -13,6 +13,7 @@ extends Area2D
 var hp: int = 0
 var timer: float = 0
 
+# 初始化敌人阵营、血量、碰撞回调和调试绘制。
 func _ready() -> void:
 	DebugHelper.register_debug_drawable(self)
 	add_to_group("enemies")
@@ -20,9 +21,11 @@ func _ready() -> void:
 	body_entered.connect(_on_body_entered)
 	
 	
+# 驱动敌人移动并按延迟规则尝试射击。
 func _process(delta: float) -> void:
 	delay_shooting(delta)
 	
+# 累计射击冷却，到点后向下生成敌方子弹。
 func delay_shooting(delta: float) -> bool:
 	timer += delta
 	if timer >= shot_cd:
@@ -41,6 +44,7 @@ func delay_shooting(delta: float) -> bool:
 		return true
 	return false
 
+# 处理敌人受击后的血量扣减和死亡判定。
 func take_damage(damage: int) -> void:
 	hp -= damage
 	DebugState.debug_log("Enemy hit: %d/%d (-%d)" % [hp, max_hp, damage])
@@ -50,15 +54,18 @@ func take_damage(damage: int) -> void:
 		die()
 
 
+# 销毁敌人节点并输出调试日志。
 func die() -> void:
 	DebugState.debug_log("Enemy destroyed")
 	queue_free()
 
 
+# 敌人碰到可受伤目标时造成接触伤害。
 func _on_body_entered(body: Node2D) -> void:
 	if body.has_method("take_damage"):
 		body.take_damage(contact_damage)
 
 
+# 在调试模式下绘制敌人碰撞形状。
 func _draw() -> void:
 	DebugHelper.draw_collision_shape(self, self as Area2D)

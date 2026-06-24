@@ -7,6 +7,7 @@ extends ParameterSampler
 @export var include_end: bool = false
 
 
+# 在起止参数之间生成均匀分布的采样值。
 func sample_values() -> Array[float]:
 	var result: Array[float] = []
 	if sample_count <= 0:

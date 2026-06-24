@@ -21,6 +21,7 @@ var current_phase: int = 0
 var active_phase: BossPhase
 
 
+# 初始化 Boss 血量、调试绘制、碰撞事件和阶段状态机。
 func _ready() -> void:
 	DebugHelper.register_debug_drawable(self)
 	add_to_group("bosses")
@@ -38,6 +39,7 @@ func _ready() -> void:
 	phase_state_machine.setup(self)
 
 
+# 处理 Boss 受到伤害后的血量变化、UI 更新和死亡判定。
 func take_damage(damage: int) -> void:
 	if damage <= 0:
 		return
@@ -55,6 +57,7 @@ func take_damage(damage: int) -> void:
 		die()
 
 
+# 关闭阶段逻辑并广播 Boss 死亡事件。
 func die() -> void:
 	DebugState.debug_log("Boss destroyed")
 	if phase_state_machine != null:
@@ -64,14 +67,17 @@ func die() -> void:
 	queue_free()
 
 
+# 提供当前场景中的子弹层，供弹幕发射上下文使用。
 func get_bullet_layer() -> BulletLayer:
 	return bullet_layer
 
 
+# 提供 Boss 默认使用的子弹场景资源。
 func get_bullet_scene() -> PackedScene:
 	return bullet_scene
 
 
+# 返回敌方子弹的碰撞层和碰撞掩码初始化数据。
 func get_enemy_bullet_init_data() -> Dictionary:
 	return {
 		"collision_layer": CollisionLayers.ENEMY_BULLET,
@@ -79,19 +85,23 @@ func get_enemy_bullet_init_data() -> Dictionary:
 	}
 
 
+# 从当前场景中查找玩家节点供攻击模式瞄准。
 func get_player() -> Node2D:
 	var player: Node = get_tree().current_scene.get_node_or_null("Player")
 	return player as Node2D
 
 
+# 返回 Boss 当前血量。
 func get_hp() -> int:
 	return hp
 
 
+# 返回 Boss 最大血量。
 func get_max_hp() -> int:
 	return max_hp
 
 
+# 连接阶段状态机信号到 Boss 对外广播接口。
 func _connect_phase_state_machine() -> void:
 	var phase_changed_callback: Callable = Callable(self, "_on_phase_state_machine_phase_changed")
 	var transition_started_callback: Callable = Callable(self, "_on_phase_transition_started")
@@ -105,6 +115,7 @@ func _connect_phase_state_machine() -> void:
 		phase_state_machine.phase_transition_finished.connect(transition_finished_callback)
 
 
+# 同步当前阶段数据并更新血条阶段文字。
 func _on_phase_state_machine_phase_changed(phase: BossPhase) -> void:
 	active_phase = phase
 	current_phase = phase.phase_id
@@ -115,18 +126,22 @@ func _on_phase_state_machine_phase_changed(phase: BossPhase) -> void:
 	phase_changed.emit(current_phase)
 
 
+# 向外转发阶段切换开始事件。
 func _on_phase_transition_started(phase_id: int) -> void:
 	phase_transition_started.emit(phase_id)
 
 
+# 向外转发阶段切换完成事件。
 func _on_phase_transition_finished(phase_id: int) -> void:
 	phase_transition_finished.emit(phase_id)
 
 
+# Boss 接触可受伤对象时造成碰撞伤害。
 func _on_body_entered(body: Node2D) -> void:
 	if body.has_method("take_damage"):
 		body.take_damage(contact_damage)
 
 
+# 在调试模式下绘制 Boss 的碰撞形状。
 func _draw() -> void:
 	DebugHelper.draw_collision_shape(self, self as Area2D)

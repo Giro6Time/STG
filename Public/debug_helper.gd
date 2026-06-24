@@ -4,6 +4,7 @@ extends RefCounted
 const DEBUG_COLLISION_GROUP: String = "debug_collision_drawables"
 
 
+# 注册需要在调试碰撞显示开启时重绘的 CanvasItem。
 static func register_debug_drawable(node: CanvasItem) -> void:
 	if node == null:
 		return
@@ -14,6 +15,7 @@ static func register_debug_drawable(node: CanvasItem) -> void:
 	node.queue_redraw()
 
 
+# 通知所有已注册节点刷新调试碰撞绘制。
 static func queue_debug_collision_redraw(tree: SceneTree) -> void:
 	if tree == null:
 		return
@@ -21,6 +23,7 @@ static func queue_debug_collision_redraw(tree: SceneTree) -> void:
 	tree.call_group(DEBUG_COLLISION_GROUP, "queue_redraw")
 
 
+# 按碰撞形状和阵营颜色绘制调试轮廓。
 static func draw_collision_shape(drawer: CanvasItem, owner_node: CollisionObject2D) -> void:
 	if drawer == null or owner_node == null:
 		return
@@ -36,6 +39,7 @@ static func draw_collision_shape(drawer: CanvasItem, owner_node: CollisionObject
 		_draw_circle_shape(drawer, owner_node, shape_node)
 
 
+# 把圆形碰撞体转换为本地绘制坐标并画出轮廓。
 static func _draw_circle_shape(
 	drawer: CanvasItem,
 	owner_node: CollisionObject2D,
@@ -52,6 +56,7 @@ static func _draw_circle_shape(
 	drawer.draw_arc(shape_node.position, radius, 0.0, TAU, 48, line_color, 1.5)
 
 
+# 根据碰撞层选择调试显示颜色。
 static func _get_debug_collision_color(collision_layer: int) -> Color:
 	if (collision_layer & CollisionLayers.PLAYER) != 0:
 		return Color(0.2, 1.0, 0.35, 1.0)

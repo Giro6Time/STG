@@ -13,6 +13,7 @@ var _f4_pressed_last_frame := false
 var _f5_pressed_last_frame := false
 
 
+# 初始化调试面板信号连接和静态文本。
 func _ready() -> void:
 	panel.visible = DebugState.debug_enabled
 	DebugState.debug_enabled_changed.connect(_on_debug_enabled_changed)
@@ -21,6 +22,7 @@ func _ready() -> void:
 	_refresh_static_text()
 
 
+# 调试开启时刷新输入、统计数据和日志显示。
 func _process(_delta: float) -> void:
 	_handle_debug_input()
 
@@ -35,6 +37,7 @@ func _process(_delta: float) -> void:
 	_refresh_logs()
 
 
+# 处理调试快捷键并切换各类调试显示。
 func _handle_debug_input() -> void:
 	if not DebugState.can_use_debug():
 		return
@@ -58,20 +61,24 @@ func _handle_debug_input() -> void:
 		DebugState.toggle_logs()
 
 
+# 响应调试开关变化并刷新面板可见性。
 func _on_debug_enabled_changed(enabled: bool) -> void:
 	panel.visible = enabled
 	_refresh_static_text()
 
 
+# 收到新日志时刷新日志文本。
 func _on_log_added(_message: String) -> void:
 	_refresh_logs()
 
 
+# 刷新调试面板顶部的快捷键说明。
 func _refresh_static_text() -> void:
 	title_label.text = "DEBUG MODE"
 	_refresh_logs()
 
 
+# 把最近的调试日志写入界面文本。
 func _refresh_logs() -> void:
 	if not DebugState.debug_enabled or not DebugState.show_logs:
 		log_label.text = "Logs: hidden"
@@ -83,6 +90,7 @@ func _refresh_logs() -> void:
 		log_label.text = "Logs:\n" + "\n".join(DebugState.logs)
 
 
+# 统计子弹层中的活跃、缓存和总子弹数。
 func _get_bullet_stats() -> String:
 	if not DebugState.show_bullet_count:
 		return "hidden"
@@ -105,6 +113,7 @@ func _get_bullet_stats() -> String:
 	]
 
 
+# 收集敌人和 Boss 的血量信息用于调试显示。
 func _get_enemy_hp_text(enemies: Array) -> String:
 	if not DebugState.show_enemy_hp:
 		return "Enemy HP: hidden"

@@ -6,6 +6,7 @@ extends Resource
 @export var spawn_rule: BulletSpawnRule
 
 
+# 按采样器生成一批曲线点，并用发射规则一次性生成弹幕。
 func emit_once(bullet_layer: BulletLayer, bullet_scene: PackedScene, init_data: Dictionary, origin: Vector2) -> void:
 	if bullet_layer == null:
 		return
