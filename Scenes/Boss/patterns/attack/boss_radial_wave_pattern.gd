@@ -2,9 +2,8 @@ class_name BossRadialWavePattern
 extends BossAttackPattern
 
 @export var fire_interval: float = 1.4
-@export var bullet_count: int = 24
-@export var spawn_radius: float = 16.0
-@export var angle_offset_degrees: float = 90.0
+@export var curve: ParametricCurve = CircleParametricCurve.new()
+@export var sampler: ParameterSampler = UniformParameterSampler.new()
 @export var bullet_speed: float = 90.0
 @export var bullet_acceleration: float = 35.0
 @export var bullet_scene: PackedScene
@@ -13,18 +12,23 @@ extends BossAttackPattern
 
 var _fire_timer: float = 0.0
 var _emitter: PatternEmitter = PatternEmitter.new()
-var _curve: CircleParametricCurve = CircleParametricCurve.new()
-var _sampler: UniformParameterSampler = UniformParameterSampler.new()
 
 
-# 启动圆形波次弹幕并设置首次发射计时。
+# 启动圆形波次弹幕，注册曲线调试数据并设置首次发射计时。
 func start_pattern(boss: Boss) -> void:
 	super.start_pattern(boss)
+	DebugHelper.register_curve_drawable(self)
 	_configure_emitter()
 	if fire_immediately:
 		_fire_timer = 0.0
 	else:
 		_fire_timer = fire_interval
+
+
+# 停止圆形波次弹幕时注销曲线调试数据，避免阶段结束后残留显示。
+func stop_pattern() -> void:
+	DebugHelper.unregister_curve_drawable(self)
+	super.stop_pattern()
 
 
 # 按发射间隔触发一圈径向弹幕。
@@ -40,11 +44,11 @@ func update_pattern(delta: float) -> void:
 	fire_wave()
 
 
-# 用通用 Emitter 从 Boss 位置发射一组圆形弹幕。
+# 用通用 Emitter 从 Boss 位置发射一组曲线弹幕。
 func fire_wave() -> bool:
 	if not _is_running:
 		return false
-	if _boss == null || bullet_scene == null:
+	if _boss == null or bullet_scene == null:
 		return false
 
 	_configure_emitter()
@@ -54,18 +58,33 @@ func fire_wave() -> bool:
 		_boss.get_enemy_bullet_init_data(),
 		_boss.global_position
 	)
-	DebugState.debug_log("Boss radial wave fire: %s" % get_pattern_label())
+	DebugState.debug_log("Boss curve wave fire: %s" % get_pattern_label(), "Curve")
 	return true
 
-# 把导出参数同步到曲线、采样器和发射规则。
-func _configure_emitter() -> void:
-	_curve.radius = spawn_radius
-	_curve.angle_offset_degrees = angle_offset_degrees
 
-	_sampler.start_t = 0.0
-	_sampler.end_t = 1.0
-	_sampler.sample_count = bullet_count
-	_sampler.include_end = false
+# 提供当前曲线的调试绘制数据，Debug 层只负责调用 Curve 自己的可视化方法。
+func get_debug_curve_draw_data() -> Array[Dictionary]:
+	if _boss == null:
+		return []
+
+	_configure_emitter()
+	return [
+		{
+			"curve": curve,
+			"sampler": sampler,
+			"origin": _boss.global_position,
+			"color": Color(0.85, 0.3, 1.0, 0.95),
+			"tangent_length": 14.0
+		}
+	]
+
+
+# 把导出的曲线、采样器和发射参数同步到 Emitter。
+func _configure_emitter() -> void:
+	if curve == null:
+		curve = CircleParametricCurve.new()
+	if sampler == null:
+		sampler = UniformParameterSampler.new()
 
 	_spawn_rule.bullet_speed = bullet_speed
 	_spawn_rule.acceleration = bullet_acceleration
@@ -74,6 +93,6 @@ func _configure_emitter() -> void:
 	_spawn_rule.use_tangent_as_direction = false
 	_spawn_rule.fallback_direction = Vector2.DOWN
 
-	_emitter.curve = _curve
-	_emitter.sampler = _sampler
+	_emitter.curve = curve
+	_emitter.sampler = sampler
 	_emitter.spawn_rule = _spawn_rule
