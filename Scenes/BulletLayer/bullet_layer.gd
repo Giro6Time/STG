@@ -23,7 +23,7 @@ func spawn_bullet(
 	active_bullets.add_child(bullet)
 
 	bullet.setup(self, spawn_position, init_data)
-	DebugState.debug_log("Spawn bullet: %s" % bullet.name)
+	DebugState.debug_log("Spawn bullet: %s" % bullet.name, "Bullet")
 
 	return bullet
 
@@ -48,7 +48,7 @@ func recycle_bullet(bullet: BulletBase) -> void:
 		_pools[bullet_scene] = []
 
 	_pools[bullet_scene].append(bullet)
-	DebugState.debug_log("Recycle bullet: %s" % bullet.name)
+	DebugState.debug_log("Recycle bullet: %s" % bullet.name, "Bullet")
 
 
 # 回收当前所有活跃子弹，用于清屏或阶段切换。

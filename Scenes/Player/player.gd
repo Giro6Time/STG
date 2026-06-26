@@ -77,8 +77,12 @@ func _spawn_bullet() -> void:
 
 # 处理玩家受伤、日志输出和死亡判定。
 func take_damage(damage: int) -> void:
+	if DebugState.invincible_enabled:
+		DebugState.debug_log("Player damage ignored: %d" % damage, "Player")
+		return
+
 	hp -= damage
-	DebugState.debug_log("Player hit: %d/%d (-%d)" % [hp, max_hp, damage])
+	DebugState.debug_log("Player hit: %d/%d (-%d)" % [hp, max_hp, damage], "Player")
 	print("Player HP: ", hp)
 
 	if hp <= 0:

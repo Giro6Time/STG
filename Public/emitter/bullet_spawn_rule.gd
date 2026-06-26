@@ -36,11 +36,11 @@ func spawn_bullet(
 	base_init_data: Dictionary = {}
 ) -> BulletBase:
 	if bullet_layer == null:
-		DebugState.debug_log("Bullet layer missing")
+		DebugState.debug_log("Bullet layer missing", "Bullet")
 		return null
 
 	if bullet_scene == null:
-		DebugState.debug_log("Bullet scene missing")
+		DebugState.debug_log("Bullet scene missing", "Bullet")
 		return null
 
 	var spawn_direction: Vector2 = direction
