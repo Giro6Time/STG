@@ -1,48 +1,60 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://8834w3elq7dt"]
 
-[ext_resource type="Script" path="res://Scenes/Debug/debug_overlay.gd" id="1_debug"]
+[ext_resource type="Script" uid="uid://fo80lnyvykjg" path="res://Scenes/Debug/debug_overlay.gd" id="1_debug"]
 
-[node name="DebugOverlay" type="CanvasLayer"]
+[node name="DebugOverlay" type="CanvasLayer" unique_id=2068709185]
 layer = 100
 script = ExtResource("1_debug")
 
-[node name="Panel" type="PanelContainer" parent="."]
+[node name="Panel" type="PanelContainer" parent="." unique_id=439806317]
 visible = false
-offset_left = 8.0
-offset_top = 8.0
-offset_right = 300.0
-offset_bottom = 190.0
+offset_left = 6.0
+offset_top = 6.0
+offset_right = 430.0
+offset_bottom = 126.0
 
-[node name="Margin" type="MarginContainer" parent="Panel"]
+[node name="Margin" type="MarginContainer" parent="Panel" unique_id=1581751668]
 layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 4
 
-[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin" unique_id=1462618107]
 layout_mode = 2
+theme_override_constants/separation = 1
 
-[node name="TitleLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="TitleLabel" type="Label" parent="Panel/Margin/VBox" unique_id=734379063]
 layout_mode = 2
-text = "DEBUG MODE"
+theme_override_font_sizes/font_size = 10
+text = "DBG"
 
-[node name="FpsLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="FpsLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1251405636]
 layout_mode = 2
-text = "FPS: 0"
+theme_override_font_sizes/font_size = 10
+text = "FPS 0"
 
-[node name="BulletsLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="BulletsLabel" type="Label" parent="Panel/Margin/VBox" unique_id=589958586]
 layout_mode = 2
-text = "Bullets: n/a"
+theme_override_font_sizes/font_size = 10
+text = "Blt n/a"
 
-[node name="EnemiesLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="EnemiesLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1689263833]
 layout_mode = 2
-text = "Enemies: 0"
+theme_override_font_sizes/font_size = 10
+text = "Enemy 0"
 
-[node name="EnemyHpLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="EnemyHpLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1766343741]
 layout_mode = 2
-text = "Enemy HP: none"
+theme_override_font_sizes/font_size = 10
+text = "HP none"
 
-[node name="LogLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="OptionsLabel" type="Label" parent="Panel/Margin/VBox" unique_id=2072032072]
 layout_mode = 2
-text = "Logs: none"
+theme_override_font_sizes/font_size = 10
+text = "Filter: ALL"
+
+[node name="LogLabel" type="Label" parent="Panel/Margin/VBox" unique_id=262313450]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Log none"

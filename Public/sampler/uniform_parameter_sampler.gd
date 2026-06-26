@@ -1,3 +1,4 @@
+@tool
 class_name UniformParameterSampler
 extends ParameterSampler
 

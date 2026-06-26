@@ -45,7 +45,7 @@ func update_pattern(delta: float) -> void:
 
 	_elapsed += delta
 	if _elapsed >= timeout:
-		DebugState.debug_log("Boss external event timeout: %s" % get_pattern_label())
+		DebugState.debug_log("Boss external event timeout: %s" % get_pattern_label(), "Boss")
 		mark_completed()
 
 
@@ -57,5 +57,5 @@ func complete_from_external() -> void:
 # 广播或记录外部事件请求，提示关卡流程接管。
 func _send_request() -> void:
 	_request_sent = true
-	DebugState.debug_log("Boss external event requested: %s" % get_pattern_label())
+	DebugState.debug_log("Boss external event requested: %s" % get_pattern_label(), "Boss")
 	external_event_requested.emit(event_name, payload, self)

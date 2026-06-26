@@ -32,7 +32,7 @@ func enter_state(owner: Node) -> void:
 	_is_active = true
 
 	# Phase 只负责启动自己配置的 Pattern；何时结束由 evaluate_transition() 根据运行时数据和 Pattern 完成状态判断。
-	DebugState.debug_log("Boss phase enter: %s" % get_phase_label())
+	DebugState.debug_log("Boss phase enter: %s" % get_phase_label(), "Boss")
 
 	for index in range(_patterns.size()):
 		var pattern: BossPattern = _patterns[index]
@@ -84,7 +84,7 @@ func exit_state() -> void:
 	if not _is_active:
 		return
 
-	DebugState.debug_log("Boss phase exit: %s" % get_phase_label())
+	DebugState.debug_log("Boss phase exit: %s" % get_phase_label(), "Boss")
 
 	for index in range(_patterns.size()):
 		var pattern: BossPattern = _patterns[index]
@@ -127,6 +127,6 @@ func _resolve_patterns() -> Array[BossPattern]:
 		if pattern != null:
 			result.append(pattern)
 		else:
-			DebugState.debug_log("Boss phase pattern missing: %s" % str(pattern_path))
+			DebugState.debug_log("Boss phase pattern missing: %s" % str(pattern_path), "Boss")
 
 	return result

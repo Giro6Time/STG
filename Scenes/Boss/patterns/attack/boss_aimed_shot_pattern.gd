@@ -28,7 +28,7 @@ func update_pattern(delta: float) -> void:
 	# 当前先做“朝玩家方向发射一发子弹”，后续可扩展成多发、扇形或预判射击。
 	var direction: Vector2 = _get_direction_to_player()
 	fire_bullet(_boss.global_position, direction, bullet_speed, damage)
-	DebugState.debug_log("Boss attack fire: %s" % get_pattern_label())
+	DebugState.debug_log("Boss attack fire: %s" % get_pattern_label(), "Boss")
 
 
 # 计算从 Boss 指向玩家的单位方向，缺失玩家时向下发射。

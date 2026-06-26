@@ -21,7 +21,7 @@ func start_pattern(boss: Boss) -> void:
 	if not _is_running:
 		return
 
-	DebugState.debug_log("Boss pattern start: %s" % get_pattern_label())
+	DebugState.debug_log("Boss pattern start: %s" % get_pattern_label(), "Boss")
 
 
 # 提供 Pattern 每帧更新入口，子类按需要实现。
@@ -32,7 +32,7 @@ func update_pattern(_delta: float) -> void:
 # 停止 Pattern 并释放对 Boss 的引用。
 func stop_pattern() -> void:
 	if _is_running:
-		DebugState.debug_log("Boss pattern stop: %s" % get_pattern_label())
+		DebugState.debug_log("Boss pattern stop: %s" % get_pattern_label(), "Boss")
 
 	_is_running = false
 	_boss = null
@@ -45,7 +45,7 @@ func mark_completed() -> void:
 
 	_is_completed = true
 	_is_running = false
-	DebugState.debug_log("Boss pattern completed: %s" % get_pattern_label())
+	DebugState.debug_log("Boss pattern completed: %s" % get_pattern_label(), "Boss")
 	pattern_completed.emit(self)
 
 

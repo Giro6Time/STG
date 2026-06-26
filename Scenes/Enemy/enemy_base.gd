@@ -47,7 +47,7 @@ func delay_shooting(delta: float) -> bool:
 # 处理敌人受击后的血量扣减和死亡判定。
 func take_damage(damage: int) -> void:
 	hp -= damage
-	DebugState.debug_log("Enemy hit: %d/%d (-%d)" % [hp, max_hp, damage])
+	DebugState.debug_log("Enemy hit: %d/%d (-%d)" % [hp, max_hp, damage], "Enemy")
 	print("Enemy HP: ", hp)
 
 	if hp <= 0:
@@ -56,7 +56,7 @@ func take_damage(damage: int) -> void:
 
 # 销毁敌人节点并输出调试日志。
 func die() -> void:
-	DebugState.debug_log("Enemy destroyed")
+	DebugState.debug_log("Enemy destroyed", "Enemy")
 	queue_free()
 
 

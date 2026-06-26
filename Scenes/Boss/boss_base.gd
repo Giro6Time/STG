@@ -46,7 +46,7 @@ func take_damage(damage: int) -> void:
 
 	# 统一伤害入口，玩家子弹只需要调用 take_damage() 就能命中 Boss。
 	hp = max(hp - damage, 0)
-	DebugState.debug_log("Boss hit: %d/%d (-%d)" % [hp, max_hp, damage])
+	DebugState.debug_log("Boss hit: %d/%d (-%d)" % [hp, max_hp, damage], "Boss")
 
 	if health_bar != null:
 		health_bar.set_hp(hp, max_hp)
@@ -59,7 +59,7 @@ func take_damage(damage: int) -> void:
 
 # 关闭阶段逻辑并广播 Boss 死亡事件。
 func die() -> void:
-	DebugState.debug_log("Boss destroyed")
+	DebugState.debug_log("Boss destroyed", "Boss")
 	if phase_state_machine != null:
 		phase_state_machine.shutdown()
 
