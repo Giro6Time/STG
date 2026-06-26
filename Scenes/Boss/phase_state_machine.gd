@@ -24,7 +24,7 @@ func setup(owner_boss: Boss) -> void:
 	_connect_state_machine()
 
 	if _phases.is_empty():
-		DebugState.debug_log("Boss phase state machine has no states")
+		DebugState.debug_log("Boss phase state machine has no states", "Boss")
 		return
 
 	_state_machine.start(_phases[0])
@@ -37,7 +37,7 @@ func transition_to_phase_id(phase_id: int) -> bool:
 		if phase.phase_id == phase_id:
 			return _state_machine.transition_to(phase)
 
-	DebugState.debug_log("Boss phase id missing: %d" % phase_id)
+	DebugState.debug_log("Boss phase id missing: %d" % phase_id, "Boss")
 	return false
 
 
@@ -87,7 +87,7 @@ func _get_configured_phases() -> Array[BossPhase]:
 		if phase != null:
 			result.append(phase)
 		else:
-			DebugState.debug_log("Boss phase path missing: %s" % str(phase_path))
+			DebugState.debug_log("Boss phase path missing: %s" % str(phase_path), "Boss")
 
 	if not result.is_empty():
 		return result
@@ -112,10 +112,10 @@ func _try_transition(phase: BossPhase, runtime_data: BossPhaseRuntimeData) -> vo
 
 	var target_phase_id: int = phase.get_transition_target_phase_id(transition_key)
 	if target_phase_id < 0:
-		DebugState.debug_log("Boss phase transition missing: %s -> %s" % [phase.get_phase_label(), transition_key])
+		DebugState.debug_log("Boss phase transition missing: %s -> %s" % [phase.get_phase_label(), transition_key], "Boss")
 		return
 
-	DebugState.debug_log("Boss phase transition: %s -> %d by %s" % [phase.get_phase_label(), target_phase_id, transition_key])
+	DebugState.debug_log("Boss phase transition: %s -> %d by %s" % [phase.get_phase_label(), target_phase_id, transition_key], "Boss")
 	transition_to_phase_id(target_phase_id)
 
 
@@ -127,7 +127,7 @@ func _on_state_machine_state_changed(_previous_state: Node, current_state: Node)
 	if active_phase == null:
 		return
 
-	DebugState.debug_log("Boss phase changed: %s" % active_phase.get_phase_label())
+	DebugState.debug_log("Boss phase changed: %s" % active_phase.get_phase_label(), "Boss")
 	phase_transition_started.emit(active_phase.phase_id)
 	phase_changed.emit(active_phase)
 	phase_transition_finished.emit(active_phase.phase_id)
