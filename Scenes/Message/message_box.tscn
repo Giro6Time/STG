@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://b2o33vl0nmsgb"]
+
+[ext_resource type="Script" uid="uid://coqg8ftmsgbox" path="res://Scenes/Message/message_box.gd" id="1_message_box"]
+
+[node name="MessageBox" type="Control" unique_id=678959799 node_paths=PackedStringArray("panel", "speaker_label", "content_label")]
+layout_mode = 3
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -720.0
+offset_right = 480.0
+offset_bottom = -660.0
+script = ExtResource("1_message_box")
+panel = NodePath("Panel")
+speaker_label = NodePath("Margin/HBox/SpeakerLabel")
+content_label = NodePath("Margin/HBox/ContentLabel")
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=2057798411]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=304321797]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -14.0
+offset_bottom = 42.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="HBox" type="HBoxContainer" parent="Margin" unique_id=1711371822]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SpeakerLabel" type="Label" parent="Margin/HBox" unique_id=690919535]
+custom_minimum_size = Vector2(86, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 16
+text = "System"
+vertical_alignment = 1
+
+[node name="ContentLabel" type="RichTextLabel" parent="Margin/HBox" unique_id=187343257]
+custom_minimum_size = Vector2(340, 82)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+theme_override_font_sizes/normal_font_size = 18
+text = "你感觉有一个邪恶的存在正在注视着你……"
+scroll_active = false

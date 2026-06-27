@@ -1,0 +1,29 @@
+{
+  "eye_intro_warning": {
+    "speaker": "System",
+    "text": "你感觉有一个[pause=0.3][slow][color=#ff5a7a]邪恶的存在[/color][/slow][pause=0.5]正在注视着你……",
+    "duration": 3.0,
+    "typewriter": true,
+    "chars_per_second": 24,
+    "priority": 10,
+    "interrupt_policy": "queue"
+  },
+  "eye_phase_2": {
+    "speaker": "System",
+    "text": "[fast][color=yellow]气息变得更强了。[/color][/fast][pause=0.4]弹幕开始扭曲。",
+    "duration": 2.5,
+    "typewriter": true,
+    "chars_per_second": 28,
+    "priority": 20,
+    "interrupt_policy": "interrupt"
+  },
+  "eye_defeated": {
+    "speaker": "System",
+    "text": "那道[color=#66aaff]视线[/color]终于消失了。",
+    "duration": 3.0,
+    "typewriter": true,
+    "chars_per_second": 24,
+    "priority": 50,
+    "interrupt_policy": "queue"
+  }
+}
