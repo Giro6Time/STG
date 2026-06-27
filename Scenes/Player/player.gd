@@ -3,6 +3,10 @@ extends CharacterBody2D
 @export var move_speed: float = 320.0
 @export var slow_speed: float = 140.0
 @export var max_hp: int = 3
+@export var graze_radius: float = 56.0:
+	set(value):
+		graze_radius = value
+		_sync_graze_radius()
 
 @export var bullet_scene: PackedScene
 @export var fire_interval: float = 0.08
@@ -10,16 +14,52 @@ extends CharacterBody2D
 @onready var shot_point: Marker2D = $ShotPoint
 @onready var hb_sprite: Sprite2D = $HBSprite
 @onready var anim_player: AnimationPlayer = $AnimationPlayer
+@onready var graze_area: Area2D = $GrazeArea
+@onready var graze_shape: CollisionShape2D = $GrazeArea/CollisionShape2D
 @onready var bullet_layer: BulletLayer = get_tree().current_scene.get_node("BulletLayer")
 var _fire_timer: float = 0.0
 var hp: int = 0
-
+var _hurted: bool = false
 
 # 初始化玩家血量并注册调试碰撞绘制。
 func _ready() -> void:
 	DebugHelper.register_debug_drawable(self)
 	hp = max_hp
+	_sync_graze_radius()
+	_connect_graze_area()
 
+
+# 同步擦弹检测范围，供 Inspector 配置运行时半径。
+func _sync_graze_radius() -> void:
+	if graze_shape == null:
+		return
+	if graze_shape.shape is CircleShape2D:
+		var circle_shape: CircleShape2D = graze_shape.shape as CircleShape2D
+		circle_shape.radius = graze_radius
+
+
+# 连接擦弹区域信号，避免场景复用时产生重复连接。
+func _connect_graze_area() -> void:
+	if graze_area == null:
+		return
+
+	var callback: Callable = Callable(self, "_on_graze_area_entered")
+	if not graze_area.area_entered.is_connected(callback):
+		graze_area.area_entered.connect(callback)
+
+
+# 处理敌方子弹进入擦弹范围，并把帧级结算交给 GrazeContext。
+func _on_graze_area_entered(area: Area2D) -> void:
+	var bullet: BulletBase = area as BulletBase
+	if bullet == null:
+		return
+	if not bullet.try_mark_grazed():
+		return
+
+	GrazeContext.request_graze(bullet, bullet.global_position)
+
+func _process(delta: float) -> void:
+	_hurted = false
 
 # 每个物理帧处理玩家移动和射击输入。
 func _physics_process(delta: float) -> void:
@@ -80,7 +120,9 @@ func take_damage(damage: int) -> void:
 	if DebugState.invincible_enabled:
 		DebugState.debug_log("Player damage ignored: %d" % damage, "Player")
 		return
-
+	if(_hurted == true): # 同一帧只能受伤一次，为后续清空弹幕做准备 
+		return
+	_hurted = true
 	hp -= damage
 	DebugState.debug_log("Player hit: %d/%d (-%d)" % [hp, max_hp, damage], "Player")
 	print("Player HP: ", hp)
