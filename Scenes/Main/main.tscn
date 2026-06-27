@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://2r1iin0pml1l" path="res://Scenes/Boss/boss_base.tscn" id="3_boss"]
 [ext_resource type="PackedScene" path="res://Scenes/Debug/debug_overlay.tscn" id="4_debug"]
 [ext_resource type="PackedScene" path="res://Scenes/Debug/debug_draw_layer.tscn" id="5_debug_draw"]
+[ext_resource type="PackedScene" path="res://Scenes/Message/message_layer.tscn" id="6_message_layer"]
 
 [node name="Main" type="Node2D" unique_id=887430896]
 
@@ -18,5 +19,7 @@ position = Vector2(316, 134)
 
 [node name="DebugDrawLayer" parent="." unique_id=2082914821 instance=ExtResource("5_debug_draw")]
 z_index = 0
+
+[node name="MessageLayer" parent="." unique_id=773640281 instance=ExtResource("6_message_layer")]
 
 [node name="DebugOverlay" parent="." unique_id=1922955264 instance=ExtResource("4_debug")]
