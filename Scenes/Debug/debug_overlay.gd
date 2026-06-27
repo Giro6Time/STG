@@ -4,6 +4,7 @@ extends CanvasLayer
 @onready var title_label: Label = $Panel/Margin/VBox/TitleLabel
 @onready var fps_label: Label = $Panel/Margin/VBox/FpsLabel
 @onready var bullets_label: Label = $Panel/Margin/VBox/BulletsLabel
+@onready var graze_label: Label = $Panel/Margin/VBox/GrazeLabel
 @onready var enemies_label: Label = $Panel/Margin/VBox/EnemiesLabel
 @onready var enemy_hp_label: Label = $Panel/Margin/VBox/EnemyHpLabel
 @onready var options_label: Label = $Panel/Margin/VBox/OptionsLabel
@@ -36,6 +37,7 @@ func _process(_delta: float) -> void:
 	var enemies: Array[Node] = get_tree().get_nodes_in_group("enemies")
 	fps_label.text = "FPS %d" % Engine.get_frames_per_second()
 	bullets_label.text = "Blt %s" % _get_bullet_stats()
+	graze_label.text = "Grz %d / %d" % [GrazeContext.total_graze, GrazeContext.graze_score]
 	enemies_label.text = "Enemy %d" % enemies.size()
 	enemy_hp_label.text = _get_enemy_hp_text(enemies)
 	_refresh_static_text()

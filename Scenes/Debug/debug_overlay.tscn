@@ -39,6 +39,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "Blt n/a"
 
+[node name="GrazeLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1152376804]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Grz 0 / 0"
+
 [node name="EnemiesLabel" type="Label" parent="Panel/Margin/VBox" unique_id=1689263833]
 layout_mode = 2
 theme_override_font_sizes/font_size = 10

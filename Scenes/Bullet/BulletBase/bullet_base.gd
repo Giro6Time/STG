@@ -5,6 +5,7 @@ var velocity: Vector2 = Vector2.ZERO
 var speed: float = 0.0
 var acceleration: float = 0.0
 var damage: int = 1
+var has_grazed: bool = false
 
 var _owner_layer: BulletLayer
 var _active: bool = false
@@ -28,6 +29,7 @@ func setup(owner_layer: BulletLayer, spawn_position: Vector2, init_data: Diction
 	damage = init_data.get("damage", 1)
 	collision_layer = init_data.get("collision_layer", collision_layer)
 	collision_mask = init_data.get("collision_mask", collision_mask)
+	has_grazed = false
 
 	_active = true
 	visible = true
@@ -43,6 +45,7 @@ func recycle() -> void:
 		return
 
 	_active = false
+	has_grazed = false
 	visible = false
 	set_process(false)
 	set_physics_process(false)
@@ -66,6 +69,15 @@ func _do_recycle() ->void:
 func _process(delta: float) -> void:
 	speed = max(speed + acceleration * delta, 0.0)
 	global_position += velocity.normalized() * speed * delta
+
+
+# 标记本轮出生已经触发过擦弹，返回值用于调用方决定是否提交 GrazeContext。
+func try_mark_grazed() -> bool:
+	if has_grazed or not _active:
+		return false
+
+	has_grazed = true
+	return true
 
 
 # 命中 Area2D 目标时造成伤害并回收子弹。

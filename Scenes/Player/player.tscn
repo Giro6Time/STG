@@ -9,6 +9,9 @@
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_l3ax4"]
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_graze"]
+radius = 56.0
+
 [sub_resource type="Animation" id="Animation_xpcdj"]
 resource_name = "Idle"
 length = 0.6
@@ -156,11 +159,20 @@ _data = {
 [node name="Player" type="CharacterBody2D" unique_id=499312084]
 collision_mask = 12
 script = ExtResource("1_uvnfx")
+graze_radius = 56.0
 bullet_scene = ExtResource("2_xpcdj")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1977383813]
 scale = Vector2(2.6799989, 2.6799989)
 shape = SubResource("CircleShape2D_l3ax4")
+
+[node name="GrazeArea" type="Area2D" parent="." unique_id=1744021388]
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GrazeArea" unique_id=1967714826]
+shape = SubResource("CircleShape2D_graze")
 
 [node name="ShotPoint" type="Marker2D" parent="." unique_id=1686164365]
 position = Vector2(0, -64)

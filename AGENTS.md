@@ -175,6 +175,7 @@ This project follows a simplified Git Flow style.
 For every new feature, bugfix, or experiment:
 
 1. Create a new branch from `develop`.
+- Before creating any new branch, fetch the remote repository and base the branch on the latest `origin/develop`, because many merges happen through Pull Requests.
 2. Implement the feature within that branch.
 3. Keep changes focused on a single task whenever possible.
 4. Open a Pull Request targeting `develop`.
