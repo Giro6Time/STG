@@ -22,7 +22,7 @@ func set_hp(current_hp: int, max_hp: int) -> void:
 
 # 用阶段编号更新血条上的阶段标签。
 func set_phase(current_phase: int) -> void:
-	# 保留数字阶段接口，方便非 BossPhase 调用者继续使用。
+	# 保留数字阶段接口，方便非 FlowPhase 调用者继续使用。
 	if current_phase <= 0:
 		set_phase_label("Intro")
 		return

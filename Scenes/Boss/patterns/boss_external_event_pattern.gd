@@ -1,7 +1,7 @@
 class_name BossExternalEventPattern
-extends BossPattern
+extends FlowPattern
 
-signal external_event_requested(event_name: String, payload: Dictionary, pattern: BossPattern)
+signal external_event_requested(event_name: String, payload: Dictionary, pattern: FlowPattern)
 
 @export var event_name: String = ""
 @export var payload: Dictionary = {}
@@ -18,8 +18,8 @@ func _init() -> void:
 
 
 # 启动等待外部事件的 Pattern 并按配置发出请求。
-func start_pattern(boss: Boss) -> void:
-	super.start_pattern(boss)
+func start_pattern(pattern_owner: Node) -> void:
+	super.start_pattern(pattern_owner)
 	_elapsed = 0.0
 	_request_sent = false
 
@@ -33,7 +33,7 @@ func start_pattern(boss: Boss) -> void:
 
 
 # 在超时策略启用时累计等待时间并自动完成。
-func update_pattern(delta: float) -> void:
+func update_pattern(runtime_data: FlowPhaseRuntimeData) -> void:
 	if not _is_running:
 		return
 
@@ -43,7 +43,7 @@ func update_pattern(delta: float) -> void:
 	if timeout < 0.0:
 		return
 
-	_elapsed += delta
+	_elapsed += runtime_data.delta
 	if _elapsed >= timeout:
 		DebugState.debug_log("Boss external event timeout: %s" % get_pattern_label(), "Boss")
 		mark_completed()

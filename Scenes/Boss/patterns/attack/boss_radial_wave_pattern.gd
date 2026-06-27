@@ -15,8 +15,8 @@ var _emitter: PatternEmitter = PatternEmitter.new()
 
 
 # 启动圆形波次弹幕，注册曲线调试数据并设置首次发射计时。
-func start_pattern(boss: Boss) -> void:
-	super.start_pattern(boss)
+func start_pattern(pattern_owner: Node) -> void:
+	super.start_pattern(pattern_owner)
 	DebugHelper.register_curve_drawable(self)
 	_configure_emitter()
 	if fire_immediately:
@@ -32,11 +32,11 @@ func stop_pattern() -> void:
 
 
 # 按发射间隔触发一圈径向弹幕。
-func update_pattern(delta: float) -> void:
+func update_pattern(runtime_data: FlowPhaseRuntimeData) -> void:
 	if not _is_running:
 		return
 
-	_fire_timer -= delta
+	_fire_timer -= runtime_data.delta
 	if _fire_timer > 0.0:
 		return
 
@@ -44,19 +44,22 @@ func update_pattern(delta: float) -> void:
 	fire_wave()
 
 
-# 用通用 Emitter 从 Boss 位置发射一组曲线弹幕。
+# 用通用 Emitter 从宿主位置发射一组曲线弹幕。
 func fire_wave() -> bool:
 	if not _is_running:
 		return false
-	if _boss == null or bullet_scene == null:
+
+	var boss: Boss = get_owner_as_boss()
+	var owner_node: Node2D = get_owner_as_node2d()
+	if boss == null or owner_node == null or bullet_scene == null:
 		return false
 
 	_configure_emitter()
 	_emitter.emit_once(
-		_boss.get_bullet_layer(),
+		_get_bullet_layer(),
 		bullet_scene,
-		_boss.get_enemy_bullet_init_data(),
-		_boss.global_position
+		boss.get_enemy_bullet_init_data(),
+		owner_node.global_position
 	)
 	DebugState.debug_log("Boss curve wave fire: %s" % get_pattern_label(), "Curve")
 	return true
@@ -64,7 +67,8 @@ func fire_wave() -> bool:
 
 # 提供当前曲线的调试绘制数据，Debug 层只负责调用 Curve 自己的可视化方法。
 func get_debug_curve_draw_data() -> Array[Dictionary]:
-	if _boss == null:
+	var owner_node: Node2D = get_owner_as_node2d()
+	if owner_node == null:
 		return []
 
 	_configure_emitter()
@@ -72,7 +76,7 @@ func get_debug_curve_draw_data() -> Array[Dictionary]:
 		{
 			"curve": curve,
 			"sampler": sampler,
-			"origin": _boss.global_position,
+			"origin": owner_node.global_position,
 			"color": Color(0.85, 0.3, 1.0, 0.95),
 			"tangent_length": 14.0
 		}
