@@ -4,10 +4,10 @@
 [ext_resource type="Texture2D" uid="uid://cdrsd7hitcj10" path="res://Art/EnemyAirframe-tomato/tomatoenemy.png" id="2_boss_texture"]
 [ext_resource type="PackedScene" path="res://Scenes/Boss/boss_health_bar.tscn" id="3_health_bar"]
 [ext_resource type="PackedScene" uid="uid://bltigg1aeycc0" path="res://Scenes/Bullet/ConcreateScene/TomatoBullet.tscn" id="4_bullet"]
-[ext_resource type="Script" uid="uid://bp4vs4wmqybco" path="res://Scenes/Boss/phases/boss_phase.gd" id="5_phase"]
+[ext_resource type="Script" uid="uid://bp4vs4wmqybco" path="res://Public/flow/flow_phase.gd" id="5_phase"]
 [ext_resource type="Script" uid="uid://bcd3etuwv4g48" path="res://Scenes/Boss/patterns/attack/boss_aimed_shot_pattern.gd" id="6_aimed_shot"]
 [ext_resource type="Script" uid="uid://bpoyqw0oqg6eh" path="res://Scenes/Boss/patterns/movement/boss_horizontal_sweep_movement.gd" id="7_horizontal_sweep"]
-[ext_resource type="Script" uid="uid://c4d7mx1slpdhi" path="res://Scenes/Boss/phase_state_machine.gd" id="8_phase_machine"]
+[ext_resource type="Script" uid="uid://c4d7mx1slpdhi" path="res://Public/flow/flow_phase_machine.gd" id="8_phase_machine"]
 [ext_resource type="Script" uid="uid://dk1didxhddjfn" path="res://Scenes/Boss/patterns/boss_wait_pattern.gd" id="9_wait_pattern"]
 [ext_resource type="Script" uid="uid://bfvjn86vf6mky" path="res://Scenes/Boss/patterns/attack/boss_radial_wave_pattern.gd" id="10_radial_wave"]
 [ext_resource type="Script" uid="uid://8y0o16m4geyp" path="res://Scenes/Debug/debug_curve_preview_2d.gd" id="11_curve_preview"]
@@ -38,7 +38,7 @@ shape = SubResource("CircleShape2D_boss")
 
 [node name="BossHealthBar" parent="." unique_id=1640024717 instance=ExtResource("3_health_bar")]
 
-[node name="PhaseStateMachine" type="Node" parent="." unique_id=950245337]
+[node name="FlowPhaseMachine" type="Node" parent="." unique_id=950245337]
 script = ExtResource("8_phase_machine")
 phase_paths = Array[NodePath]([NodePath("../Phases/IntroPhase"), NodePath("../Phases/Phase1"), NodePath("../Phases/Phase1To2Transition"), NodePath("../Phases/Phase2"), NodePath("../Phases/Phase2To3Transition"), NodePath("../Phases/Phase3")])
 

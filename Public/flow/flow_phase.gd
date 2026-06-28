@@ -1,4 +1,4 @@
-class_name BossPhase
+class_name FlowPhase
 extends Node
 
 const NO_TRANSITION_KEY: String = ""
@@ -16,42 +16,41 @@ const NO_TRANSITION_KEY: String = ""
 @export var transition_keys: Array[String] = []
 @export var transition_target_phase_ids: Array[int] = []
 
-var _boss: Boss
-var _patterns: Array[BossPattern] = []
+var _pattern_owner: Node
+var _patterns: Array[FlowPattern] = []
 var _is_active: bool = false
 
 
 # 进入阶段时解析并启动本阶段配置的所有 Pattern。
 func enter_state(owner: Node) -> void:
-	var boss: Boss = owner as Boss
-	if boss == null:
+	if owner == null:
 		return
 
-	_boss = boss
+	_pattern_owner = owner
 	_patterns = _resolve_patterns()
 	_is_active = true
 
-	# Phase 只负责启动自己配置的 Pattern；何时结束由 evaluate_transition() 根据运行时数据和 Pattern 完成状态判断。
-	DebugState.debug_log("Boss phase enter: %s" % get_phase_label(), "Boss")
+	# Phase 只负责编排 Pattern，具体运动、发射或演出由 Pattern 自身处理。
+	DebugState.debug_log("Flow phase enter: %s" % get_phase_label(), "Flow")
 
 	for index in range(_patterns.size()):
-		var pattern: BossPattern = _patterns[index]
-		pattern.start_pattern(_boss)
+		var pattern: FlowPattern = _patterns[index]
+		pattern.start_pattern(_pattern_owner)
 
 
 # 逐帧更新尚未完成的阶段 Pattern。
-func update_phase(runtime_data: BossPhaseRuntimeData) -> void:
+func update_phase(runtime_data: FlowPhaseRuntimeData) -> void:
 	if not _is_active:
 		return
 
 	for index in range(_patterns.size()):
-		var pattern: BossPattern = _patterns[index]
+		var pattern: FlowPattern = _patterns[index]
 		if not pattern.is_completed():
-			pattern.update_pattern(runtime_data.delta)
+			pattern.update_pattern(runtime_data)
 
 
 # 根据时间、血量和 Pattern 完成状态决定是否转场。
-func evaluate_transition(runtime_data: BossPhaseRuntimeData) -> String:
+func evaluate_transition(runtime_data: FlowPhaseRuntimeData) -> String:
 	if not _is_active:
 		return NO_TRANSITION_KEY
 
@@ -84,15 +83,15 @@ func exit_state() -> void:
 	if not _is_active:
 		return
 
-	DebugState.debug_log("Boss phase exit: %s" % get_phase_label(), "Boss")
+	DebugState.debug_log("Flow phase exit: %s" % get_phase_label(), "Flow")
 
 	for index in range(_patterns.size()):
-		var pattern: BossPattern = _patterns[index]
+		var pattern: FlowPattern = _patterns[index]
 		pattern.stop_pattern()
 
 	_patterns.clear()
 	_is_active = false
-	_boss = null
+	_pattern_owner = null
 
 
 # 返回阶段显示名称，未配置时使用默认编号。
@@ -108,7 +107,7 @@ func _required_patterns_completed() -> bool:
 	var has_required_pattern: bool = false
 
 	for index in range(_patterns.size()):
-		var pattern: BossPattern = _patterns[index]
+		var pattern: FlowPattern = _patterns[index]
 		if pattern.is_required_for_phase_completion():
 			has_required_pattern = true
 			if not pattern.is_completed():
@@ -118,15 +117,15 @@ func _required_patterns_completed() -> bool:
 
 
 # 根据配置的 NodePath 找到本阶段实际运行的 Pattern。
-func _resolve_patterns() -> Array[BossPattern]:
-	var result: Array[BossPattern] = []
+func _resolve_patterns() -> Array[FlowPattern]:
+	var result: Array[FlowPattern] = []
 
 	for index in range(pattern_paths.size()):
 		var pattern_path: NodePath = pattern_paths[index]
-		var pattern: BossPattern = get_node_or_null(pattern_path) as BossPattern
+		var pattern: FlowPattern = get_node_or_null(pattern_path) as FlowPattern
 		if pattern != null:
 			result.append(pattern)
 		else:
-			DebugState.debug_log("Boss phase pattern missing: %s" % str(pattern_path), "Boss")
+			DebugState.debug_log("Flow phase pattern missing: %s" % str(pattern_path), "Flow")
 
 	return result
