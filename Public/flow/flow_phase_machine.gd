@@ -1,30 +1,30 @@
-class_name PhaseStateMachine
+class_name FlowPhaseMachine
 extends Node
 
-signal phase_changed(active_phase: BossPhase)
+signal phase_changed(active_phase: FlowPhase)
 signal phase_transition_started(phase_id: int)
 signal phase_transition_finished(phase_id: int)
 
 @export var phase_paths: Array[NodePath] = []
 @export var phase_container_path: NodePath = NodePath("../Phases")
 
-var active_phase: BossPhase
+var active_phase: FlowPhase
 
-var _owner_boss: Boss
+var _pattern_owner: Node
 var _state_machine: StateMachine = StateMachine.new()
-var _phases: Array[BossPhase] = []
+var _phases: Array[FlowPhase] = []
 var _phase_elapsed: float = 0.0
 
 
-# 收集阶段节点并启动 Boss 的第一个阶段。
-func setup(owner_boss: Boss) -> void:
-	_owner_boss = owner_boss
+# 收集阶段节点并启动宿主的第一个流程阶段。
+func setup(pattern_owner: Node) -> void:
+	_pattern_owner = pattern_owner
 	_phases = _get_configured_phases()
-	_state_machine.setup(_owner_boss, _phases)
+	_state_machine.setup(_pattern_owner, _phases)
 	_connect_state_machine()
 
 	if _phases.is_empty():
-		DebugState.debug_log("Boss phase state machine has no states", "Boss")
+		DebugState.debug_log("Flow phase machine has no states", "Flow")
 		return
 
 	_state_machine.start(_phases[0])
@@ -33,11 +33,11 @@ func setup(owner_boss: Boss) -> void:
 # 按阶段 id 查找目标阶段并请求状态机切换。
 func transition_to_phase_id(phase_id: int) -> bool:
 	for index in range(_phases.size()):
-		var phase: BossPhase = _phases[index]
+		var phase: FlowPhase = _phases[index]
 		if phase.phase_id == phase_id:
 			return _state_machine.transition_to(phase)
 
-	DebugState.debug_log("Boss phase id missing: %d" % phase_id, "Boss")
+	DebugState.debug_log("Flow phase id missing: %d" % phase_id, "Flow")
 	return false
 
 
@@ -49,11 +49,12 @@ func get_active_phase_id() -> int:
 	return active_phase.phase_id
 
 
-# 让当前阶段执行退出逻辑，用于 Boss 死亡或清理。
+# 让当前阶段执行退出逻辑，用于宿主死亡或清理。
 func shutdown() -> void:
 	var current_state: Node = _state_machine.get_current_state()
-	if current_state != null and current_state.has_method("exit_state"):
-		current_state.exit_state()
+	if current_state != null and current_state is FlowPhase:
+		var phase: FlowPhase = current_state as FlowPhase
+		phase.exit_state()
 
 
 # 每帧更新当前阶段并检查是否满足转场条件。
@@ -63,14 +64,14 @@ func _process(delta: float) -> void:
 
 	_phase_elapsed += delta
 
-	var runtime_data: BossPhaseRuntimeData = BossPhaseRuntimeData.new()
-	runtime_data.setup(_owner_boss, delta, _phase_elapsed)
+	var runtime_data: FlowPhaseRuntimeData = FlowPhaseRuntimeData.new()
+	runtime_data.setup(_pattern_owner, delta, _phase_elapsed)
 
 	active_phase.update_phase(runtime_data)
 	_try_transition(active_phase, runtime_data)
 
 
-# 连接底层状态机切换信号以同步 Boss 阶段。
+# 连接底层状态机切换信号以同步当前阶段。
 func _connect_state_machine() -> void:
 	var callback: Callable = Callable(self, "_on_state_machine_state_changed")
 	if not _state_machine.state_changed.is_connected(callback):
@@ -78,16 +79,16 @@ func _connect_state_machine() -> void:
 
 
 # 按配置路径解析阶段节点，缺省时回退到阶段容器子节点。
-func _get_configured_phases() -> Array[BossPhase]:
-	var result: Array[BossPhase] = []
+func _get_configured_phases() -> Array[FlowPhase]:
+	var result: Array[FlowPhase] = []
 
 	for index in range(phase_paths.size()):
 		var phase_path: NodePath = phase_paths[index]
-		var phase: BossPhase = get_node_or_null(phase_path) as BossPhase
+		var phase: FlowPhase = get_node_or_null(phase_path) as FlowPhase
 		if phase != null:
 			result.append(phase)
 		else:
-			DebugState.debug_log("Boss phase path missing: %s" % str(phase_path), "Boss")
+			DebugState.debug_log("Flow phase path missing: %s" % str(phase_path), "Flow")
 
 	if not result.is_empty():
 		return result
@@ -97,7 +98,7 @@ func _get_configured_phases() -> Array[BossPhase]:
 		return result
 
 	for index in range(phase_container.get_child_count()):
-		var child_phase: BossPhase = phase_container.get_child(index) as BossPhase
+		var child_phase: FlowPhase = phase_container.get_child(index) as FlowPhase
 		if child_phase != null:
 			result.append(child_phase)
 
@@ -105,29 +106,29 @@ func _get_configured_phases() -> Array[BossPhase]:
 
 
 # 根据阶段运行数据计算并执行阶段转场。
-func _try_transition(phase: BossPhase, runtime_data: BossPhaseRuntimeData) -> void:
+func _try_transition(phase: FlowPhase, runtime_data: FlowPhaseRuntimeData) -> void:
 	var transition_key: String = phase.evaluate_transition(runtime_data)
-	if transition_key == BossPhase.NO_TRANSITION_KEY:
+	if transition_key == FlowPhase.NO_TRANSITION_KEY:
 		return
 
 	var target_phase_id: int = phase.get_transition_target_phase_id(transition_key)
 	if target_phase_id < 0:
-		DebugState.debug_log("Boss phase transition missing: %s -> %s" % [phase.get_phase_label(), transition_key], "Boss")
+		DebugState.debug_log("Flow phase transition missing: %s -> %s" % [phase.get_phase_label(), transition_key], "Flow")
 		return
 
-	DebugState.debug_log("Boss phase transition: %s -> %d by %s" % [phase.get_phase_label(), target_phase_id, transition_key], "Boss")
+	DebugState.debug_log("Flow phase transition: %s -> %d by %s" % [phase.get_phase_label(), target_phase_id, transition_key], "Flow")
 	transition_to_phase_id(target_phase_id)
 
 
 # 记录新阶段、重置计时并广播阶段变化。
 func _on_state_machine_state_changed(_previous_state: Node, current_state: Node) -> void:
-	active_phase = current_state as BossPhase
+	active_phase = current_state as FlowPhase
 	_phase_elapsed = 0.0
 
 	if active_phase == null:
 		return
 
-	DebugState.debug_log("Boss phase changed: %s" % active_phase.get_phase_label(), "Boss")
+	DebugState.debug_log("Flow phase changed: %s" % active_phase.get_phase_label(), "Flow")
 	phase_transition_started.emit(active_phase.phase_id)
 	phase_changed.emit(active_phase)
 	phase_transition_finished.emit(active_phase.phase_id)

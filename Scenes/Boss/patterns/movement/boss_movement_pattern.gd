@@ -1,10 +1,10 @@
 class_name BossMovementPattern
-extends BossPattern
+extends FlowPattern
 
 
 # 启动移动 Pattern，并输出移动开始日志。
-func start_pattern(boss: Boss) -> void:
-	super.start_pattern(boss)
+func start_pattern(pattern_owner: Node) -> void:
+	super.start_pattern(pattern_owner)
 
 	if _is_running:
 		DebugState.debug_log("Boss movement start: %s" % get_pattern_label(), "Boss")

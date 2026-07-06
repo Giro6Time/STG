@@ -1,6 +1,8 @@
 class_name BulletLayer
 extends Node2D
 
+const GROUP_NAME: String = "bullet_layers"
+
 @export var despawn_margin: float = 64.0
 
 @onready var active_bullets: Node2D = $ActiveBullets
@@ -8,6 +10,11 @@ extends Node2D
 
 var _pools: Dictionary = {}
 var _scene_by_bullet: Dictionary = {}
+
+
+# 将弹幕层注册到 group，供 Boss、敌人或子弹发射器按场景查找。
+func _ready() -> void:
+	add_to_group(GROUP_NAME)
 
 
 # 从对象池取得子弹，初始化后放入活跃节点。
@@ -19,7 +26,7 @@ func spawn_bullet(
 	if bullet_scene == null:
 		return null
 
-	var bullet := _get_bullet_from_pool(bullet_scene)
+	var bullet: BulletBase = _get_bullet_from_pool(bullet_scene)
 	active_bullets.add_child(bullet)
 
 	bullet.setup(self, spawn_position, init_data)
@@ -62,6 +69,7 @@ func clear_all() -> void:
 func _process(_delta: float) -> void:
 	_cleanup_out_of_bounds()
 
+
 # 优先复用对象池子弹，池空时实例化新子弹。
 func _get_bullet_from_pool(bullet_scene: PackedScene) -> BulletBase:
 	if not _pools.has(bullet_scene):
@@ -85,17 +93,18 @@ func _get_bullet_from_pool(bullet_scene: PackedScene) -> BulletBase:
 
 # 检测活跃子弹是否离开扩展边界并回收。
 func _cleanup_out_of_bounds() -> void:
-	var viewport_size := get_viewport_rect().size
-	var bounds := Rect2(
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var bounds: Rect2 = Rect2(
 		Vector2(-despawn_margin, -despawn_margin),
 		viewport_size + Vector2(despawn_margin * 2.0, despawn_margin * 2.0)
 	)
 
 	for child in active_bullets.get_children():
 		if child is BulletBase:
-			var bullet := child as BulletBase
+			var bullet: BulletBase = child as BulletBase
 			if not bounds.has_point(bullet.global_position):
 				bullet.recycle()
+
 
 # 返回当前活跃子弹数量供调试显示。
 func get_active_bullet_count() -> int:

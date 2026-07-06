@@ -1,5 +1,5 @@
 class_name BossWaitPattern
-extends BossPattern
+extends FlowPattern
 
 @export var duration: float = 1.0
 
@@ -12,8 +12,8 @@ func _init() -> void:
 
 
 # 开始等待并重置计时器。
-func start_pattern(boss: Boss) -> void:
-	super.start_pattern(boss)
+func start_pattern(pattern_owner: Node) -> void:
+	super.start_pattern(pattern_owner)
 	_elapsed = 0.0
 
 	if _is_running and duration <= 0.0:
@@ -21,10 +21,10 @@ func start_pattern(boss: Boss) -> void:
 
 
 # 累计等待时间，到达配置时长后完成 Pattern。
-func update_pattern(delta: float) -> void:
+func update_pattern(runtime_data: FlowPhaseRuntimeData) -> void:
 	if not _is_running:
 		return
 
-	_elapsed += delta
+	_elapsed += runtime_data.delta
 	if _elapsed >= duration:
 		mark_completed()
