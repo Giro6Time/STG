@@ -65,8 +65,9 @@
 
 - Boss 阶段/弹幕流程：见 `docs/phase_machine_flow.md`。
 - 消息框和 Excel 导出 JSON：见 `docs/message_system.md`。
+- 音效与 BGM 管理：见 `docs/audio_system.md`。
 - 输入：方向键移动，Shift 慢速，Z 射击，调试快捷键见 `project.godot`。
-- Autoload：`DebugState`、`GrazeContext`。
+- Autoload：`DebugState`、`GrazeContext`、`AudioManager`。
 
 ## 验证
 
