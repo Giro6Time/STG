@@ -1,0 +1,135 @@
+[gd_scene format=3 uid="uid://cgrn75n25458v"]
+
+[ext_resource type="Script" uid="uid://6kajar2lf1db" path="res://Scenes/Audio/Test/audio_manager_test.gd" id="1_script"]
+
+[node name="AudioManagerTest" type="Node2D" unique_id=1465415979]
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="." unique_id=2023196286]
+show_behind_parent = true
+offset_right = 640.0
+offset_bottom = 720.0
+mouse_filter = 2
+color = Color(0.055, 0.063, 0.067, 1)
+
+[node name="MovingSource" type="Node2D" parent="." unique_id=1705852340]
+unique_name_in_owner = true
+position = Vector2(320, 655)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=310499721]
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer" unique_id=1594689578]
+offset_right = 640.0
+offset_bottom = 620.0
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/Margin" unique_id=527774319]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="CanvasLayer/Margin/VBox" unique_id=99005809]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.973, 0.957, 0.91, 1)
+theme_override_font_sizes/font_size = 24
+text = "AudioManager 测试台"
+
+[node name="StatusLabel" type="Label" parent="CanvasLayer/Margin/VBox" unique_id=188869066]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 74)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.8, 0.82, 1)
+theme_override_font_sizes/font_size = 15
+text = "状态"
+
+[node name="SfxTitle" type="Label" parent="CanvasLayer/Margin/VBox" unique_id=911094507]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.937, 0.702, 0.4, 1)
+theme_override_font_sizes/font_size = 18
+text = "音效"
+
+[node name="SfxGrid" type="GridContainer" parent="CanvasLayer/Margin/VBox" unique_id=116258012]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="PingNameButton" type="Button" parent="CanvasLayer/Margin/VBox/SfxGrid" unique_id=1067245606]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "字符串播放 Ping"
+
+[node name="PingIdButton" type="Button" parent="CanvasLayer/Margin/VBox/SfxGrid" unique_id=729402090]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "enum / id 播放 Ping"
+
+[node name="HitAtButton" type="Button" parent="CanvasLayer/Margin/VBox/SfxGrid" unique_id=883767378]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "在移动点播放 2D 命中"
+
+[node name="FollowButton" type="Button" parent="CanvasLayer/Margin/VBox/SfxGrid" unique_id=1468753993]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "启动跟随循环"
+
+[node name="InterruptButton" type="Button" parent="CanvasLayer/Margin/VBox/SfxGrid" unique_id=579849056]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "测试同名打断"
+
+[node name="OncePerFrameButton" type="Button" parent="CanvasLayer/Margin/VBox/SfxGrid" unique_id=343003650]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "同帧触发 8 次"
+
+[node name="BgmTitle" type="Label" parent="CanvasLayer/Margin/VBox" unique_id=1220289106]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.376, 0.804, 0.612, 1)
+theme_override_font_sizes/font_size = 18
+text = "BGM"
+
+[node name="BgmGrid" type="GridContainer" parent="CanvasLayer/Margin/VBox" unique_id=863405783]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="StageBgmButton" type="Button" parent="CanvasLayer/Margin/VBox/BgmGrid" unique_id=597050274]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "播放舞台 BGM"
+
+[node name="LayerButton" type="Button" parent="CanvasLayer/Margin/VBox/BgmGrid" unique_id=149866994]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "开启节奏层"
+
+[node name="StopBgmButton" type="Button" parent="CanvasLayer/Margin/VBox/BgmGrid" unique_id=1392527981]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "淡出停止 BGM"
+
+[node name="BossIntroButton" type="Button" parent="CanvasLayer/Margin/VBox/BgmGrid" unique_id=1769967019]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "播放 Boss 前奏"
+
+[node name="QueueBossButton" type="Button" parent="CanvasLayer/Margin/VBox/BgmGrid" unique_id=798317530]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(294, 42)
+layout_mode = 2
+text = "排队 Boss 正式曲"

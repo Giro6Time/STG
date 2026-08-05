@@ -144,7 +144,7 @@ func play_bgm(track_name: String, fade_in: float = 0.5, fade_out: float = 0.5, f
 
 
 # 通过数字 id 播放 BGM，适合调用侧使用 enum。
-func play_bgm_id(track_id: int, fade_in: float = 0.5, fade_out: float = 0.5, from_position: float = 0.0) -> bool:
+func play_bgm_id(track_id: int, fade_in: float = 0, fade_out: float = 0, from_position: float = 0.0) -> bool:
 	var track: AudioBgmTrack = _bgm_by_id.get(track_id) as AudioBgmTrack
 	if track == null:
 		push_warning("BGM track id not found: %d" % track_id)
@@ -154,7 +154,7 @@ func play_bgm_id(track_id: int, fade_in: float = 0.5, fade_out: float = 0.5, fro
 
 
 # 停止当前 BGM。
-func stop_bgm(fade_out: float = 0.5) -> void:
+func stop_bgm(fade_out: float = 0) -> void:
 	_queued_bgm_track_name = ""
 	_pending_bgm_track = null
 	_fade_out_current_bgm(fade_out)

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AudioBgmTrack" format=3 uid="uid://ch1lqotectmni"]
+
+[ext_resource type="AudioStream" uid="uid://cs0tnmiqp6dgj" path="res://Art/Audio/CthulhuReinventing_v1.wav" id="1_bmi4b"]
+[ext_resource type="Script" uid="uid://bkv23c3a4pfam" path="res://Public/audio/audio_bgm_track.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+track_name = "test_stage"
+track_id = 101
+primary_stream = ExtResource("1_bmi4b")
+layer_stream = ExtResource("1_bmi4b")
+volume_db = -12.0
+layer_volume_db = -9.0
