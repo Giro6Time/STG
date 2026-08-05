@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AudioSfxEvent" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Public/audio/audio_sfx_event.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://Art/Audio/Test/sfx_interrupt.wav" id="2_stream"]
+
+[resource]
+script = ExtResource("1_script")
+event_name = "test_interrupt"
+event_id = 4
+stream = ExtResource("2_stream")
+volume_db = -3.0
+use_2d_player = false
+max_instances = 1
+same_event_policy = 1

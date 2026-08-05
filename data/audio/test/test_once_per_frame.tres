@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AudioSfxEvent" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Public/audio/audio_sfx_event.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://Art/Audio/Test/sfx_once_per_frame.wav" id="2_stream"]
+
+[resource]
+script = ExtResource("1_script")
+event_name = "test_once_per_frame"
+event_id = 5
+stream = ExtResource("2_stream")
+volume_db = -7.0
+use_2d_player = false
+max_instances = 8
+once_per_frame = true

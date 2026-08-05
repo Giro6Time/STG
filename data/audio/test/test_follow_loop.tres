@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="AudioSfxEvent" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Public/audio/audio_sfx_event.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://Art/Audio/Test/sfx_follow_loop.wav" id="2_stream"]
+
+[resource]
+script = ExtResource("1_script")
+event_name = "test_follow_loop"
+event_id = 3
+stream = ExtResource("2_stream")
+volume_db = -8.0
+loop = true
+use_2d_player = true
+max_instances = 1
+same_event_policy = 1

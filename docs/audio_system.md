@@ -187,3 +187,37 @@ AudioManager.queue_bgm_after_current_loop("boss_theme", 0.0)
 - 暂停时的沉闷/低通效果可以通过新增 Audio bus effect 或调整 BGM/SFX 总线音量实现。
 - 如果后续需要 enum 调用，可以新增 `AudioEventNames.gd` 常量脚本，把字符串集中管理。
 - 如果需要更严格的节拍同步，可以在 `AudioBgmTrack` 中补充 BPM、小节长度和入点偏移。
+
+## 测试场景
+
+从 Godot 编辑器直接运行：
+
+```text
+res://Scenes/Audio/Test/audio_manager_test.tscn
+```
+
+场景会临时载入 `res://data/audio/test/` 中的测试资源，退出时恢复 AudioManager 原配置。面板覆盖字符串和 enum/id 调用、临时音量、2D 定点音效、移动目标跟随、循环停止、同名打断、每帧限播、BGM 淡入淡出、双通道开关、长度显示以及 Boss 前奏结束后切换正式曲。
+
+测试 WAV 位于 `res://Art/Audio/Test/`。需要重新生成时，在项目目录执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\generate_audio_test_data.ps1
+```
+
+自动冒烟测试场景：
+
+```text
+res://Scenes/Audio/Test/audio_manager_smoke_test.tscn
+```
+
+## 应用正式音频
+
+1. 把正式音频放到项目内，例如 `res://Art/Audio/SFX/` 和 `res://Art/Audio/BGM/`。
+2. 在 FileSystem 面板右键目标目录新建 Resource，选择 `AudioSfxEvent` 或 `AudioBgmTrack`，保存为 `.tres`。
+3. 将音频文件拖入资源的 `stream`、`primary_stream` 或 `layer_stream`，并设置事件名、可选数字 id、音量和循环等参数。
+4. 打开 `res://Scenes/Audio/audio_manager.tscn`，把正式 `.tres` 加入根节点的 `sfx_events` 或 `bgm_tracks` 数组。
+5. 在玩法脚本中通过 `AudioManager.play_sfx(...)`、`play_sfx_id(...)` 或 `play_bgm(...)` 调用。
+
+同一首双通道 BGM 的 `primary_stream` 和 `layer_stream` 必须使用相同采样率、相同长度、相同起点并从同一工程时间轴导出，否则运行时即使从相同播放位置启动也可能听到节奏偏移。
+
+Boss 前奏衔接正式曲时，把前奏和正式曲分别导出为两个文件。前奏资源不要启用音频文件内部循环，由 `AudioBgmTrack.loop` 管理；正式曲开头需要在音乐制作阶段与前奏循环尾部自然连接。进入对话时播放前奏，允许开战后调用 `queue_bgm_after_current_loop()`，系统会在当前前奏完整结束时切换。

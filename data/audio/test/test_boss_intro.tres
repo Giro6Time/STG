@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="AudioBgmTrack" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Public/audio/audio_bgm_track.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://Art/Audio/Test/bgm_boss_intro.wav" id="2_primary"]
+
+[resource]
+script = ExtResource("1_script")
+track_name = "test_boss_intro"
+track_id = 102
+primary_stream = ExtResource("2_primary")
+volume_db = -12.0
+loop = true

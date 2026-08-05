@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AudioBgmTrack" format=3 uid="uid://bdsld5gbcwknl"]
+
+[ext_resource type="AudioStream" uid="uid://cs0tnmiqp6dgj" path="res://Art/Audio/CthulhuReinventing_v1.wav" id="1_51o32"]
+[ext_resource type="Script" uid="uid://bkv23c3a4pfam" path="res://Public/audio/audio_bgm_track.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+track_name = "test_boss"
+track_id = 103
+primary_stream = ExtResource("1_51o32")
+volume_db = -11.0
+layer_volume_db = -8.0
+start_with_layer = true
