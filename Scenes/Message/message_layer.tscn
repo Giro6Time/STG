@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dpxs4wemsgctl" path="res://Scenes/Message/message_controller.gd" id="1_controller"]
 [ext_resource type="PackedScene" uid="uid://b2o33vl0nmsgb" path="res://Scenes/Message/message_box.tscn" id="2_box"]
 
-[node name="MessageLayer" type="CanvasLayer" unique_id=1405286134 groups=["message_controllers"]]
+[node name="MessageLayer" type="CanvasLayer" unique_id=1405286134]
 layer = 40
 
 [node name="MessageBox" parent="." unique_id=1890792278 instance=ExtResource("2_box")]
@@ -12,5 +12,5 @@ offset_top = -80.0
 offset_right = 560.0
 offset_bottom = -20.0
 
-[node name="MessageController" type="Node" parent="." unique_id=1163998301]
+[node name="MessageController" type="Node" parent="." unique_id=1163998301 groups=["message_controllers"]]
 script = ExtResource("1_controller")
