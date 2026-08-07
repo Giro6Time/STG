@@ -8,7 +8,7 @@ extends Area2D
 @export var bullet_speed = 200
 
 @onready var shot_point: Marker2D = $ShotPoint
-@onready var bullet_layer: BulletLayer = get_tree().current_scene.get_node("BulletLayer")
+@onready var bullet_layer: BulletLayer = get_tree().get_first_node_in_group(BulletLayer.GROUP_NAME) as BulletLayer
 
 var hp: int = 0
 var timer: float = 0

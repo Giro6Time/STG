@@ -69,6 +69,13 @@
 - 输入：方向键移动，Shift 慢速，Z 射击，调试快捷键见 `project.godot`。
 - Autoload：`DebugState`、`GrazeContext`、`AudioManager`。
 
+## 里程碑文档约定
+
+- 每次完成一个架构/系统阶段（如 Boss 框架、Graze、AudioManager、Debug 系统、曲线弹幕框架）时，在 `docs/` 下新增或更新对应文档。
+- 文档写"为什么这么设计"：设计决策、关键接口/职责、各组件边界、拓展方向；**不写文件清单**（文件位置用 grep 查即可）。
+- 目的：AI 后续会话不用重新理解一遍架构；项目作者也能快速重新认识 AI 生成的代码。
+- 文档使用中文，保持简洁，不要写成流水账。
+
 ## 验证
 
 - 能运行 Godot 时，优先验证主场景 `Scenes/Main/main.tscn`。

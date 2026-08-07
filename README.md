@@ -76,7 +76,6 @@ Scenes/
 
 - 将对象池生命周期抽象为类似 `on_spawned()` / `on_despawned()` 的回调，让具体子弹自己重置动画、粒子、拖尾和内部状态。
 - `TomatoBullet` 使用对象池复用后，动画是否从第一帧重播需要后续统一设计。
-- `Player` 和 `Enemy` 目前通过 `current_scene.get_node("BulletLayer")` 查找子弹层，后续可改成注入、组查找或 `NodePath` 配置。
 - 建议让具体子弹场景自身也保存正确默认 layer/mask，避免直接拖入场景测试时行为不一致。
 - `collision_layers.gd` 当前命名合理：文件名使用 snake_case，类名保持 `CollisionLayers`。
 - 后续需要补充游戏状态管理，例如玩家死亡、敌人死亡特效、分数、关卡流程和重开。
