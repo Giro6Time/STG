@@ -1,8 +1,10 @@
 extends Node2D
 class_name LevelManager
 
-# 关卡装配器：读取 LevelDefinition，顺序消费流程段并实例化内容。
-# LevelManager 只在"何时叫 Boss / 何时发消息"，Boss 只提供动作与信号，双方不互相持有 UI/背景/玩家引用。
+# 关卡装配器：读取 LevelDefinition，构造执行上下文，顺序消费流程段并实例化内容。
+# LevelManager 只是"装配/编排器"：把增删场景/生命周期的动作交给段与 Boss，自己不认识段的具体字段。
+# 段通过 LevelContext 自驱动（见 LevelSegment.play / level_context.gd），达成开闭原则：
+# 新增段类型不需要改本文件的分发逻辑。Boss 装配仍保留在 Manager（场景知识 + 信号接线）。
 
 # 背景/场景切换意图接口出口：本 stage 不建视觉层，仅日志占位，待美术确认交互方式后接入。
 signal scene_change_requested(scene_key: String, params: Dictionary)
@@ -24,7 +26,7 @@ const SFX_EVENTS: Array[AudioSfxEvent] = [
 ]
 
 
-# 按关卡配置异步装配：null 则警告并返回。
+# 按组装 context 后顺序消费流程段；null 则警告并返回。
 func _ready() -> void:
 	_ensure_audio_config()
 
@@ -32,7 +34,19 @@ func _ready() -> void:
 		DebugState.debug_log("LevelManager: level_definition 为空，跳过", "Level")
 		return
 
-	_consume_segments()
+	var context := _build_context()
+	for segment in level_definition.segments:
+		await segment.play(context)
+
+
+# 构造本关卡的执行上下文：注入消息控制器、时钟与行为端口。
+func _build_context() -> LevelContext:
+	var context := LevelContext.new()
+	context.clock = get_tree()
+	context.message_controller = get_tree().get_first_node_in_group(MessageController.GROUP_NAME) as MessageController
+	context.request_scene_change = _request_scene_change
+	context.spawn_boss_segment = _spawn_boss_segment
+	return context
 
 
 # Autoload 的 audio_manager.tscn 未预置轨道，运行时注入测试资源（与测试场景同模式）。
@@ -44,45 +58,8 @@ func _ensure_audio_config() -> void:
 	AudioManager.rebuild_config_index()
 
 
-# 按顺序处理每个流程段；本次支持 night/boss 段，未知类型警告并跳过。
-func _consume_segments() -> void:
-	for segment in level_definition.segments:
-		if segment is NightSegment:
-			await _play_night_segment(segment as NightSegment)
-		elif segment is BossSegment:
-			await _spawn_boss(segment as BossSegment)
-		else:
-			DebugState.debug_log(
-				"LevelManager: 未知关卡段类型 '%s'，跳过" % (segment.type if segment else "null"),
-				"Level"
-			)
-
-
-# 夜晚降临：等待 → 依序播放开场对话 → 切 BGM → 发背景意图（日志占位）→ 进入下一段。
-func _play_night_segment(segment: NightSegment) -> void:
-	if segment.wait_before_start > 0.0:
-		await get_tree().create_timer(segment.wait_before_start).timeout
-
-	var controller := get_tree().get_first_node_in_group(MessageController.GROUP_NAME) as MessageController
-	for msg_id in segment.message_ids:
-		if controller != null:
-			controller.show_by_id(msg_id)
-
-	if not segment.bgm_track.is_empty():
-		AudioManager.play_bgm(segment.bgm_track, segment.bgm_fade_in, segment.bgm_fade_out)
-
-	_request_scene_change(segment.scene_ambience_key, {"source": "night_segment"})
-
-	# 等对话队列播完再放行 Boss 段（占位演出顺序可感知）。
-	if controller != null:
-		while controller.is_busy():
-			await get_tree().process_frame
-
-	DebugState.debug_log("LevelManager: 夜晚段完成", "Level")
-
-
-# 等待入场延迟后实例化 Boss、注入召唤列表、锁定玩家输入并连接所需信号。
-func _spawn_boss(segment: BossSegment) -> void:
+# Boss 登场装配端口（供 BossSegment.play 委派）：等待 → 实例化 Boss → 注入 → 锁输入 → 连信号。
+func _spawn_boss_segment(segment: BossSegment) -> void:
 	if segment.boss_scene == null:
 		DebugState.debug_log("LevelManager: boss_scene 为空，跳过本段", "Level")
 		return
@@ -110,7 +87,7 @@ func _spawn_boss(segment: BossSegment) -> void:
 
 
 # Boss 转阶段：Phase1（Intro 结束进入正式战斗）解锁玩家输入；
-# 若该阶段在 BossSegment 配置了消息，则通过 MessageController 发送。
+# 若该阶段在 BossSegment 配置了消息，则通过 发到消息器发送。
 func _on_boss_phase_changed(phase_id: int) -> void:
 	if phase_id == 1:
 		_set_player_input_enabled(true)
@@ -149,16 +126,23 @@ func _play_phase_transition(_payload: Dictionary) -> void:
 	DebugState.debug_log("LevelManager: 转段演出已触发", "Level")
 
 
-# 胜利演出（storyboard Node06）：清屏 → 暂停输入 → stinger → 掉落占位 → 胜利对话 → flag 日志。
-func _on_boss_died() -> void:
+# 胜利演出（storyboard Node06）：清屏 → 暂停输入 → stinger → 场景通知 → 胜利对话 → flag 日志。
+# 掉落物已由 Boss.die 消散动画后自行生成（_spawn_drops），本层只消费死亡事件，不再负责造掉落。
+func _on_boss_died(death_info: BossDiedInfo) -> void:
 	DebugState.debug_log("LevelManager: Boss 死亡，进入胜利流程", "Level")
 
 	# 先清屏再锁输入：Boss 死亡瞬间的残留敌弹若不清理，会在玩家失去操控后被补刀击杀。
 	_clear_enemy_bullets()
 	_set_player_input_enabled(false)
 	AudioManager.play_sfx_id(2)  # test_hit 占位 Victory stinger
-	_spawn_drop_placeholder()
 	_request_scene_change("victory_clear", {"source": "boss_died"})
+
+	# 根据死亡信息做演出分支：若 Boss 掉落了物品，可播掉落演出/音效（本 stage 仅日志占位）。
+	if death_info != null and death_info.has_drops:
+		DebugState.debug_log(
+			"LevelManager: Boss 掉落物已生成于 %s（演出占位）" % death_info.drop_position,
+			"Level"
+		)
 
 	var controller := get_tree().get_first_node_in_group(MessageController.GROUP_NAME) as MessageController
 	for msg_id in level_definition.victory_message_ids:
@@ -177,25 +161,6 @@ func _clear_enemy_bullets() -> void:
 		DebugState.debug_log("LevelManager: 找不到 bullet_layers，敌弹清屏跳过", "Level")
 		return
 	layer.clear_enemy_bullets()
-
-
-# 掉落占位：Boss 位置生成一个短暂闪烁的色块，随后消失（真实掉落系统留后续）。
-func _spawn_drop_placeholder() -> void:
-	if boss == null or not is_instance_valid(boss):
-		return
-
-	var drop := ColorRect.new()
-	drop.size = Vector2(14, 14)
-	drop.position = boss.position - drop.size * 0.5
-	drop.color = Color(1.0, 0.85, 0.3, 1.0)
-	drop.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(drop)
-
-	var tween := create_tween()
-	tween.set_loops(3)
-	tween.tween_property(drop, "modulate:a", 0.2, 0.15)
-	tween.tween_property(drop, "modulate:a", 1.0, 0.15)
-	tween.finished.connect(drop.queue_free)
 
 
 # 统一玩家输入开关；找不到 Player 时仅日志（不崩溃）。

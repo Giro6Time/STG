@@ -6,7 +6,8 @@ signal hp_changed(current_hp: int, max_hp: int)
 signal phase_changed(current_phase: int)
 signal phase_transition_started(current_phase: int)
 signal phase_transition_finished(current_phase: int)
-signal died
+## Boss 死亡事件，携带结构化死亡信息（掉落位置等）；由关卡演出层消费。
+signal died(info: BossDiedInfo)
 signal entrance_finished
 signal external_event_requested(event_name: String, payload: Dictionary)
 
@@ -76,8 +77,22 @@ func die() -> void:
 	if phase_machine != null:
 		phase_machine.shutdown()
 
-	died.emit()
+	# 死亡事件立即发出（带死亡信息），让关卡演出层第一时间清屏/锁输入防补刀；
+	# 掉落物由本 Boss 消散动画播完后自行生成（见 die 末尾），不同 Boss 可重写 _spawn_drops。
+	var info := BossDiedInfo.new()
+	info.drop_position = global_position
+	info.has_drops = true
+	died.emit(info)
+
 	await _play_dissolve()
+
+	_spawn_drops()
+
+
+# 取出 Boss 死亡后掉落的物品并放入关卡：Boss 决定掉什么，Level 只消费 died(info)。
+# 基类默认不掉落，子类可重写本方法产出各自的掉落物。挂到关卡父节点（不随 Boss 释放）。
+func _spawn_drops() -> void:
+	pass
 
 
 # 提供 Boss 默认使用的子弹场景资源。
