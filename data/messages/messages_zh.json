@@ -25,5 +25,155 @@
 	"chars_per_second": 24,
 	"priority": 50,
 	"interrupt_policy": "queue"
+  },
+  "night_01": {
+	"speaker": "鵺",
+	"text": "这里也会天黑？",
+	"duration": 2.0,
+	"typewriter": true,
+	"chars_per_second": 22,
+	"priority": 11,
+	"interrupt_policy": "queue"
+  },
+  "night_02": {
+	"text": "你感到有个[pause=0.3][slow][color=#32FF82]邪恶的东西[/color][/slow][pause=0.5]在看着你……",
+	"duration": 3.0,
+	"typewriter": true,
+	"chars_per_second": 20,
+	"priority": 12,
+	"interrupt_policy": "queue"
+  },
+  "night_03": {
+	"speaker": "鵺",
+	"text": "呜哇...谁在说话？！",
+	"duration": 2.0,
+	"typewriter": true,
+	"chars_per_second": 26,
+	"priority": 13,
+	"interrupt_policy": "queue"
+  },
+  "night_04": {
+	"speaker": "荷取",
+	"text": "……刚才仪器跳了一下。[pause=0.5]没事，一切都在可控范围内",
+	"duration": 3.0,
+	"typewriter": true,
+	"chars_per_second": 22,
+	"priority": 14,
+	"interrupt_policy": "queue"
+  },
+  "entrance_01": {
+	"text": "[fast][color=#AF4BFF]克苏鲁之眼已苏醒！！！[/color][/fast]",
+	"duration": 2.5,
+	"typewriter": true,
+	"chars_per_second": 28,
+	"priority": 21,
+	"interrupt_policy": "interrupt"
+  },
+  "entrance_02": {
+	"speaker": "鵺",
+	"text": "噢噢噢噢噢噢噢噢！！",
+	"duration": 2.0,
+	"typewriter": true,
+	"chars_per_second": 30,
+	"priority": 22,
+	"interrupt_policy": "queue"
+  },
+  "entrance_03": {
+	"speaker": "鵺",
+	"text": "居然还有这种东西！",
+	"duration": 2.0,
+	"typewriter": true,
+	"chars_per_second": 24,
+	"priority": 23,
+	"interrupt_policy": "queue"
+  },
+  "entrance_04": {
+	"speaker": "荷取",
+	"text": "嗯……[pause=0.5]先记录下来。",
+	"duration": 2.5,
+	"typewriter": true,
+	"chars_per_second": 22,
+	"priority": 24,
+	"interrupt_policy": "queue"
+  },
+  "transition_01": {
+	"speaker": "鵺",
+	"text": "什么？发生什么了？",
+	"duration": 2.0,
+	"typewriter": true,
+	"chars_per_second": 26,
+	"priority": 31,
+	"interrupt_policy": "interrupt"
+  },
+  "transition_02": {
+	"speaker": "荷取",
+	"text": "原来如此...看来这里的夜晚，也有很多值得研究的东西。",
+	"duration": 3.0,
+	"typewriter": true,
+	"chars_per_second": 22,
+	"priority": 32,
+	"interrupt_policy": "queue"
+  },
+  "transition_03": {
+	"speaker": "荷取",
+	"text": "加油啊，打败它就有更多实验数据了！",
+	"duration": 2.5,
+	"typewriter": true,
+	"chars_per_second": 26,
+	"priority": 33,
+	"interrupt_policy": "queue"
+  },
+  "victory_01": {
+	"speaker": "鵺",
+	"text": "哈哈哈哈，也不过如此嘛",
+	"duration": 2.0,
+	"typewriter": true,
+	"chars_per_second": 24,
+	"priority": 51,
+	"interrupt_policy": "interrupt"
+  },
+  "victory_02": {
+	"text": "[fast][color=#66AAFF]克苏鲁之眼已被击败！[/color][/fast]",
+	"duration": 2.5,
+	"typewriter": true,
+	"chars_per_second": 28,
+	"priority": 52,
+	"interrupt_policy": "queue"
+  },
+  "victory_03": {
+	"speaker": "荷取",
+	"text": "很好，数据收集完毕，干的漂亮。",
+	"duration": 2.5,
+	"typewriter": true,
+	"chars_per_second": 24,
+	"priority": 53,
+	"interrupt_policy": "queue"
+  },
+  "victory_04": {
+	"speaker": "荷取",
+	"text": "等等[pause=0.5]，诶，发生了什[pause=0.5]，眼球？！为什么？哇啊啊[pause=0.5][slow]信号断开[/slow]",
+	"duration": 4.0,
+	"typewriter": true,
+	"chars_per_second": 22,
+	"priority": 54,
+	"interrupt_policy": "queue"
+  },
+  "victory_05": {
+	"speaker": "鵺",
+	"text": "..？你在说什么呢？",
+	"duration": 2.0,
+	"typewriter": true,
+	"chars_per_second": 20,
+	"priority": 55,
+	"interrupt_policy": "queue"
+  },
+  "victory_06": {
+	"speaker": "鵺",
+	"text": "喂？...不管了！",
+	"duration": 2.0,
+	"typewriter": true,
+	"chars_per_second": 26,
+	"priority": 56,
+	"interrupt_policy": "queue"
   }
 }
