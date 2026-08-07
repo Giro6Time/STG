@@ -28,6 +28,13 @@ func _ready() -> void:
 	database.load_from_json(messages_json_path)
 
 
+# 当前是否正在显示消息或队列非空。LevelManager 用它等待一段对话序列播完。
+func is_busy() -> bool:
+	if _message_box == null:
+		return false
+	return _message_box.is_busy() or not _queue.is_empty()
+
+
 # 按消息 id 显示消息，找不到时只输出 warning。
 func show_by_id(message_id: String) -> void:
 	if not database.has_message(message_id):
