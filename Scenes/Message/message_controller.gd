@@ -1,6 +1,8 @@
 class_name MessageController
 extends Node
 
+const GROUP_NAME: String = "message_controllers"
+
 @export var messages_json_path: String = "res://data/messages/messages_zh.json"
 @export var message_box_path: NodePath = NodePath("../MessageBox")
 
@@ -9,8 +11,12 @@ var _message_box: MessageBox
 var _queue: Array[Dictionary] = []
 
 
-# 初始化消息数据库和消息框引用，MessageLayer 放入场景后会自动加载默认 JSON。
+# 将控制器注册到 group，供 LevelManager 等按场景查找。
+# .tscn 根节点已静态声明该 group（加载即生效，早于任何 _ready）此处 add_to_group
+# 为幂等兜底，兼容运行时用代码实例化（无 .tscn 静态 group 声明）的场景。
 func _ready() -> void:
+	add_to_group(GROUP_NAME)
+
 	_message_box = get_node_or_null(message_box_path) as MessageBox
 	if _message_box == null:
 		push_warning("MessageBox not found: %s" % str(message_box_path))

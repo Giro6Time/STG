@@ -12,5 +12,5 @@ offset_top = -80.0
 offset_right = 560.0
 offset_bottom = -20.0
 
-[node name="MessageController" type="Node" parent="." unique_id=1163998301]
+[node name="MessageController" type="Node" parent="." unique_id=1163998301 groups=["message_controllers"]]
 script = ExtResource("1_controller")

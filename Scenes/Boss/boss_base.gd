@@ -7,10 +7,14 @@ signal phase_changed(current_phase: int)
 signal phase_transition_started(current_phase: int)
 signal phase_transition_finished(current_phase: int)
 signal died
+signal entrance_finished
 
 @export var max_hp: int = 100
 @export var contact_damage: int = 1
 @export var bullet_scene: PackedScene
+
+## 本场战斗可召唤的敌人场景；由 LevelManager 依据 BossSegment 注入，本次只提供能力借口，不设时机。
+@export var summonable_enemy_scenes: Array[PackedScene] = []
 
 @onready var health_bar: BossHealthBar = $BossHealthBar
 @onready var phase_machine: FlowPhaseMachine = $FlowPhaseMachine
@@ -139,3 +143,24 @@ func _on_body_entered(body: Node2D) -> void:
 # 在调试模式下绘制 Boss 的碰撞形状。
 func _draw() -> void:
 	DebugHelper.draw_collision_shape(self, self as Area2D)
+
+
+# 由外部（LevelManager）注入本次可召唤的敌人场景列表。
+func set_summonable_enemy_scenes(scenes: Array[PackedScene]) -> void:
+	summonable_enemy_scenes = scenes
+
+
+# 召唤一个敌人：从召唤列表取指定场景实例化为 owner 挂入父节点（即关卡），避免跟随 Boss 移动。
+func summon_enemy(scene_index: int = 0) -> Enemy:
+	if scene_index < 0 or scene_index >= summonable_enemy_scenes.size():
+		return null
+	var scene: PackedScene = summonable_enemy_scenes[scene_index]
+	if scene == null:
+		return null
+	var enemy: Enemy = scene.instantiate() as Enemy
+	if enemy == null:
+		return null
+	var parent: Node = get_parent()
+	if parent != null:
+		parent.add_child(enemy)
+	return enemy
