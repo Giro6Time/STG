@@ -3,6 +3,10 @@ extends CharacterBody2D
 @export var move_speed: float = 320.0
 @export var slow_speed: float = 140.0
 @export var max_hp: int = 3
+
+# 输入锁定开关：用于 Boss 登场/结算等演出瞬间锁定玩家操作。
+@export var input_enabled: bool = true
+
 @export var graze_radius: float = 56.0:
 	set(value):
 		graze_radius = value
@@ -16,7 +20,7 @@ extends CharacterBody2D
 @onready var anim_player: AnimationPlayer = $AnimationPlayer
 @onready var graze_area: Area2D = $GrazeArea
 @onready var graze_shape: CollisionShape2D = $GrazeArea/CollisionShape2D
-@onready var bullet_layer: BulletLayer = get_tree().current_scene.get_node("BulletLayer")
+@onready var bullet_layer: BulletLayer = get_tree().get_first_node_in_group(BulletLayer.GROUP_NAME) as BulletLayer
 var _fire_timer: float = 0.0
 var hp: int = 0
 var _hurted: bool = false
@@ -61,10 +65,20 @@ func _on_graze_area_entered(area: Area2D) -> void:
 func _process(delta: float) -> void:
 	_hurted = false
 
-# 每个物理帧处理玩家移动和射击输入。
+# 每个物理帧处理玩家移动和射击输入；输入锁定时保持静止。
 func _physics_process(delta: float) -> void:
+	if not input_enabled:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		return
+
 	_handle_move(delta)
 	_handle_shoot(delta)
+
+
+# 控制输入锁定状态，供演出（Boss 登场、结算）临时冻结玩家操作。
+func set_input_enabled(enabled: bool) -> void:
+	input_enabled = enabled
 
 
 # 根据输入、慢速键和屏幕边界更新玩家移动。

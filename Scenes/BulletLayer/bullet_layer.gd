@@ -13,6 +13,8 @@ var _scene_by_bullet: Dictionary = {}
 
 
 # 将弹幕层注册到 group，供 Boss、敌人或子弹发射器按场景查找。
+# .tscn 根节点已静态声明该 group（加载即生效，早于任何 _ready）此处 add_to_group
+# 为幂等兜底，兼容运行时用代码实例化（无 .tscn 静态 group 声明）的场景。
 func _ready() -> void:
 	add_to_group(GROUP_NAME)
 
