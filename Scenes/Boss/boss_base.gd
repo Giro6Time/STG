@@ -6,8 +6,10 @@ signal hp_changed(current_hp: int, max_hp: int)
 signal phase_changed(current_phase: int)
 signal phase_transition_started(current_phase: int)
 signal phase_transition_finished(current_phase: int)
-signal died
+## Boss 死亡事件，携带结构化死亡信息（掉落位置等）；由关卡演出层消费。
+signal died(info: BossDiedInfo)
 signal entrance_finished
+signal external_event_requested(event_name: String, payload: Dictionary)
 
 @export var max_hp: int = 100
 @export var contact_damage: int = 1
@@ -22,6 +24,10 @@ signal entrance_finished
 var hp: int = 0
 var current_phase: int = 0
 var active_phase: FlowPhase
+
+# 死亡流程守卫：防止消散期间残留子弹再次 take_damage 触发重复 die()/died.emit，
+# 避免 LevelManager 胜利演出与胜利对话被反复入队。
+var _dying: bool = false
 
 
 # 初始化 Boss 血量、调试绘制、碰撞事件和阶段流程。
@@ -40,6 +46,7 @@ func _ready() -> void:
 	_connect_phase_machine()
 	hp_changed.emit(hp, max_hp)
 	phase_machine.setup(self)
+	_forward_external_events()
 
 
 # 处理 Boss 受到伤害后的血量变化、UI 更新和死亡判定。
@@ -60,14 +67,32 @@ func take_damage(damage: int) -> void:
 		die()
 
 
-# 关闭阶段流程并广播 Boss 死亡事件。
+# 关闭阶段流程并广播 Boss 死亡事件，然后播消散占位动画后释放。
 func die() -> void:
+	if _dying:
+		return
+	_dying = true
+
 	DebugState.debug_log("Boss destroyed", "Boss")
 	if phase_machine != null:
 		phase_machine.shutdown()
 
-	died.emit()
-	queue_free()
+	# 死亡事件立即发出（带死亡信息），让关卡演出层第一时间清屏/锁输入防补刀；
+	# 掉落物由本 Boss 消散动画播完后自行生成（见 die 末尾），不同 Boss 可重写 _spawn_drops。
+	var info := BossDiedInfo.new()
+	info.drop_position = global_position
+	info.has_drops = true
+	died.emit(info)
+
+	await _play_dissolve()
+
+	_spawn_drops()
+
+
+# 取出 Boss 死亡后掉落的物品并放入关卡：Boss 决定掉什么，Level 只消费 died(info)。
+# 基类默认不掉落，子类可重写本方法产出各自的掉落物。挂到关卡父节点（不随 Boss 释放）。
+func _spawn_drops() -> void:
+	pass
 
 
 # 提供 Boss 默认使用的子弹场景资源。
@@ -164,3 +189,28 @@ func summon_enemy(scene_index: int = 0) -> Enemy:
 	if parent != null:
 		parent.add_child(enemy)
 	return enemy
+
+
+# 转发场景内所有 BossExternalEventPattern 的事件到 Boss 对外信号，
+# 保持"Boss 只发信号，LevelManager 决定响应"的边界，不感知演出细节。
+func _forward_external_events() -> void:
+	var patterns := find_children("*", "BossExternalEventPattern", true, true)
+	for pattern in patterns:
+		var callback := Callable(self, "_on_pattern_external_event")
+		if not pattern.external_event_requested.is_connected(callback):
+			pattern.external_event_requested.connect(callback)
+
+
+func _on_pattern_external_event(event_name: String, payload: Dictionary, _pattern: FlowPattern) -> void:
+	external_event_requested.emit(event_name, payload)
+
+
+# 死亡：关闭阶段流程、广播死亡事件，然后播消散占位动画（缩至 0 + 淡出）后释放。
+# 消散期间 Boss 仍保留在场景树，LevelManager 的胜利演出（掉落/对话）可并行进行。
+func _play_dissolve() -> void:
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(self, "scale", Vector2.ZERO, 0.8).set_ease(Tween.EASE_IN)
+	tween.tween_property(self, "modulate:a", 0.0, 0.8).set_ease(Tween.EASE_IN)
+	await tween.finished
+	queue_free()

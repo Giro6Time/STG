@@ -67,6 +67,16 @@ func clear_all() -> void:
 			child.recycle()
 
 
+# 只回收敌方子弹（按碰撞层过滤），保留玩家子弹；用于 Boss 死亡清屏防补刀。
+# 敌弹以上述层为掩码出生，玩家弹属于 PLAYER_BULLET 层，故不会误清。
+func clear_enemy_bullets() -> void:
+	for child in active_bullets.get_children():
+		if child is BulletBase:
+			var bullet := child as BulletBase
+			if bullet.collision_layer & CollisionLayers.ENEMY_BULLET != 0:
+				bullet.recycle()
+
+
 # 每帧清理飞出视口边界的子弹。
 func _process(_delta: float) -> void:
 	_cleanup_out_of_bounds()

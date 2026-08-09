@@ -1,18 +1,30 @@
-[gd_resource type="Resource" script_class="LevelDefinition" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="LevelDefinition" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://Public/level/level_definition.gd" id="1_define"]
 [ext_resource type="Script" path="res://Public/level/level_segment.gd" id="2_seg"]
 [ext_resource type="Script" path="res://Public/level/boss_segment.gd" id="3_boss"]
-[ext_resource type="PackedScene" uid="uid://2r1iin0pml1l" path="res://Scenes/Boss/boss_base.tscn" id="4_boss_scene"]
+[ext_resource type="Script" path="res://Public/level/night_segment.gd" id="4_night"]
+[ext_resource type="PackedScene" uid="uid://2r1iin0pml1l" path="res://Scenes/Boss/boss_base.tscn" id="5_boss_scene"]
+
+[sub_resource type="Resource" id="Resource_night_seg"]
+script = ExtResource("4_night")
+type = "night"
+wait_before_start = 0.8
+message_ids = Array[String](["night_01", "night_02", "night_03", "night_04"])
+bgm_track = "test_boss_intro"
+bgm_fade_in = 1.5
+bgm_fade_out = 0.5
+scene_ambience_key = "night_fall"
 
 [sub_resource type="Resource" id="Resource_boss_seg"]
 script = ExtResource("3_boss")
 type = "boss"
-boss_scene = ExtResource("4_boss_scene")
+boss_scene = ExtResource("5_boss_scene")
 entrance_delay = 0.5
 spawn_position = Vector2(316, 134)
 phase_message_ids = {2: &"eye_phase_2"}
 
 [resource]
 script = ExtResource("1_define")
-segments = Array[ExtResource("2_seg")]([SubResource("Resource_boss_seg")])
+segments = Array[ExtResource("2_seg")]([SubResource("Resource_night_seg"), SubResource("Resource_boss_seg")])
+victory_message_ids = Array[String](["victory_01", "victory_02", "victory_03", "victory_04", "victory_05", "victory_06"])

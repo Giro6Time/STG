@@ -37,7 +37,8 @@ func _draw_collision_shapes() -> void:
 	var nodes: Array[Node] = get_tree().get_nodes_in_group(DebugHelper.DEBUG_COLLISION_GROUP)
 	for index in range(nodes.size()):
 		var owner_node: CollisionObject2D = nodes[index] as CollisionObject2D
-		if owner_node != null and owner_node.is_inside_tree():
+		# 跳过对象池里已回收/隐藏的节点（如 recycle 后的子弹），否则幽灵碰撞框会持续绘制。
+		if owner_node != null and owner_node.is_inside_tree() and owner_node.is_visible_in_tree():
 			_draw_collision_shape(owner_node)
 
 
