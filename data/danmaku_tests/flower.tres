@@ -1,12 +1,21 @@
-[gd_resource type="Resource" script_class="BulletPatternConfig" format=3]
+[gd_resource type="Resource" script_class="BulletPatternConfig" format=3 uid="uid://chxhmh2p8l5q6"]
 
-[ext_resource type="Script" path="res://Public/emitter/bullet_pattern_config.gd" id="1"]
-[ext_resource type="Script" path="res://Public/curve/formula_curve.gd" id="2"]
-[ext_resource type="Script" path="res://Public/sampler/uniform_parameter_sampler.gd" id="3"]
-[ext_resource type="Script" path="res://Public/emitter/timeline/repeat_timeline_driver.gd" id="4"]
-[ext_resource type="Script" path="res://Public/emitter/motion/linear_motion.gd" id="5"]
-[ext_resource type="Script" path="res://Public/emitter/bullet_behavior_config.gd" id="6"]
-[ext_resource type="PackedScene" path="res://Scenes/Bullet/BulletBase/bullet_base.tscn" id="7"]
+[ext_resource type="Script" uid="uid://bjg1r7b7ekm80" path="res://Public/emitter/bullet_pattern_config.gd" id="1"]
+[ext_resource type="Script" uid="uid://bjdnvss0hpudc" path="res://Public/curve/formula_curve.gd" id="2"]
+[ext_resource type="Script" uid="uid://d1dqcp81hhboj" path="res://Public/sampler/uniform_parameter_sampler.gd" id="3"]
+[ext_resource type="Script" uid="uid://c0rrlh4s8galh" path="res://Public/emitter/timeline/repeat_timeline_driver.gd" id="4"]
+[ext_resource type="Script" uid="uid://bpccgfm6qy4ta" path="res://Public/emitter/motion/linear_motion.gd" id="5"]
+[ext_resource type="Script" uid="uid://wt43fq25jr6" path="res://Public/emitter/bullet_behavior_config.gd" id="6"]
+[ext_resource type="PackedScene" uid="uid://bltigg1aeycc0" path="res://Scenes/Bullet/ConcreateScene/TomatoBullet.tscn" id="7"]
+
+[sub_resource type="Resource" id="motion"]
+script = ExtResource("5")
+speed = 60.0
+
+[sub_resource type="Resource" id="bullet"]
+script = ExtResource("6")
+bullet_scene = ExtResource("7")
+motion = SubResource("motion")
 
 [sub_resource type="Resource" id="curve"]
 script = ExtResource("2")
@@ -22,15 +31,6 @@ sample_count = 36
 script = ExtResource("4")
 rounds = 2
 interval = 0.6
-
-[sub_resource type="Resource" id="motion"]
-script = ExtResource("5")
-speed = 60.0
-
-[sub_resource type="Resource" id="bullet"]
-script = ExtResource("6")
-bullet_scene = ExtResource("7")
-motion = SubResource("motion")
 
 [resource]
 script = ExtResource("1")

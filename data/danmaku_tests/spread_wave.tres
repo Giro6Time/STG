@@ -1,13 +1,23 @@
-[gd_resource type="Resource" script_class="BulletPatternConfig" format=3]
+[gd_resource type="Resource" script_class="BulletPatternConfig" format=3 uid="uid://chbvsfgf57epk"]
 
-[ext_resource type="Script" path="res://Public/emitter/bullet_pattern_config.gd" id="1"]
-[ext_resource type="Script" path="res://Public/curve/circle_parametric_curve.gd" id="2"]
-[ext_resource type="Script" path="res://Public/curve/composite_curve.gd" id="3"]
-[ext_resource type="Script" path="res://Public/sampler/uniform_parameter_sampler.gd" id="4"]
-[ext_resource type="Script" path="res://Public/emitter/timeline/repeat_timeline_driver.gd" id="5"]
-[ext_resource type="Script" path="res://Public/emitter/motion/linear_motion.gd" id="6"]
-[ext_resource type="Script" path="res://Public/emitter/bullet_behavior_config.gd" id="7"]
-[ext_resource type="PackedScene" path="res://Scenes/Bullet/BulletBase/bullet_base.tscn" id="8"]
+[ext_resource type="Script" uid="uid://bjg1r7b7ekm80" path="res://Public/emitter/bullet_pattern_config.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://bltigg1aeycc0" path="res://Scenes/Bullet/ConcreateScene/TomatoBullet.tscn" id="1_v05jl"]
+[ext_resource type="Script" uid="uid://brnn2jfbx5xh8" path="res://Public/curve/circle_parametric_curve.gd" id="2"]
+[ext_resource type="Script" uid="uid://cgy6dtxikiqyr" path="res://Public/curve/composite_curve.gd" id="3"]
+[ext_resource type="Script" uid="uid://d1dqcp81hhboj" path="res://Public/sampler/uniform_parameter_sampler.gd" id="4"]
+[ext_resource type="Script" uid="uid://bllitg0lw8r11" path="res://Public/curve/parametric_curve.gd" id="4_dyam8"]
+[ext_resource type="Script" uid="uid://c0rrlh4s8galh" path="res://Public/emitter/timeline/repeat_timeline_driver.gd" id="5"]
+[ext_resource type="Script" uid="uid://bpccgfm6qy4ta" path="res://Public/emitter/motion/linear_motion.gd" id="6"]
+[ext_resource type="Script" uid="uid://wt43fq25jr6" path="res://Public/emitter/bullet_behavior_config.gd" id="7"]
+
+[sub_resource type="Resource" id="motion"]
+script = ExtResource("6")
+speed = 100.0
+
+[sub_resource type="Resource" id="bullet"]
+script = ExtResource("7")
+bullet_scene = ExtResource("1_v05jl")
+motion = SubResource("motion")
 
 [sub_resource type="Resource" id="ring_inner"]
 script = ExtResource("2")
@@ -23,7 +33,7 @@ radius = 104.0
 
 [sub_resource type="Resource" id="curve"]
 script = ExtResource("3")
-curves = Array[Resource]([SubResource("ring_inner"), SubResource("ring_mid"), SubResource("ring_outer")])
+curves = Array[ExtResource("4_dyam8")]([SubResource("ring_inner"), SubResource("ring_mid"), SubResource("ring_outer")])
 
 [sub_resource type="Resource" id="sampler"]
 script = ExtResource("4")
@@ -34,19 +44,9 @@ script = ExtResource("5")
 rounds = 24
 interval = 0.12
 
-[sub_resource type="Resource" id="motion"]
-script = ExtResource("6")
-speed = 100.0
-
-[sub_resource type="Resource" id="bullet"]
-script = ExtResource("7")
-bullet_scene = ExtResource("8")
-motion = SubResource("motion")
-
 [resource]
 script = ExtResource("1")
 display_name = "扩散波"
-duration = 4.0
 curve = SubResource("curve")
 sampler = SubResource("sampler")
 timeline = SubResource("timeline")
