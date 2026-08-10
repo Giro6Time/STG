@@ -48,8 +48,10 @@ func update_pattern(runtime_data: FlowPhaseRuntimeData) -> void:
 
 	var triggered: bool = timeline.tick(runtime_data.delta)
 	if triggered:
-		_apply_evolution(timeline.get_round())
-		_emit_round(timeline.get_round(), _get_timeline_vars())
+		# get_round() 返回的是已递增后的轮次，本轮实际编号 = 值 - 1（0 起）
+		var round_index: int = timeline.get_round() - 1
+		_apply_evolution(round_index)
+		_emit_round(round_index, _get_timeline_vars())
 		if emitter.emission_mode == PatternEmitter.EmissionMode.STREAM:
 			emitter.emit_begin(_get_bullet_layer(), _get_bullet_scene(), _get_bullet_init_data(), origin)
 			_streaming = true
