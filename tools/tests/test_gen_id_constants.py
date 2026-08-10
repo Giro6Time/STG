@@ -87,5 +87,26 @@ class TestLoadAudioEntries(unittest.TestCase):
         self.assertEqual(gen.load_audio_entries(Path("nonexistent_audio_dir")), [])
 
 
+class TestCheckDuplicates(unittest.TestCase):
+    def test_message_duplicate(self) -> None:
+        with self.assertRaises(ValueError):
+            gen.check_duplicates(["a", "a"], [])
+
+    def test_cross_type_duplicate(self) -> None:
+        entries = [gen.AudioEntry(name="dup", kind="bgm", source=Path("x.tres"))]
+        with self.assertRaises(ValueError):
+            gen.check_duplicates(["dup"], entries)
+
+    def test_const_name_collision(self) -> None:
+        entries = [gen.AudioEntry(name="test-boss", kind="bgm", source=Path("a.tres"))]
+        with self.assertRaises(ValueError):
+            gen.check_duplicates(["test_boss"], entries)
+
+    def test_ok_no_duplicates(self) -> None:
+        entries = [gen.AudioEntry(name="test_boss", kind="bgm", source=Path("x.tres"))]
+        # 不抛异常即通过
+        gen.check_duplicates(["eye_intro_warning"], entries)
+
+
 if __name__ == "__main__":
     unittest.main()

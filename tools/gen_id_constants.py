@@ -73,3 +73,26 @@ def load_audio_entries(audio_dir: Path = AUDIO_DIR) -> list[AudioEntry]:
         kind = "bgm" if script_class == _BGM_CLASS else "sfx"
         entries.append(AudioEntry(name=name, kind=kind, source=tres_path))
     return sorted(entries, key=lambda entry: entry.name)
+
+
+def check_duplicates(message_ids: list[str], audio_entries: list[AudioEntry]) -> None:
+    """校验 id 全空间无重复、常量名转换无冲突；有则抛 ValueError。"""
+    raw_seen: dict[str, str] = {}
+    for mid in message_ids:
+        prev = raw_seen.get(mid)
+        if prev is not None:
+            raise ValueError(f"重复 id: '{mid}'（messages_zh.json 与 {prev}）")
+        raw_seen[mid] = "messages_zh.json"
+    for entry in audio_entries:
+        prev = raw_seen.get(entry.name)
+        if prev is not None:
+            raise ValueError(f"重复 id: '{entry.name}'（{entry.source} 与 {prev}）")
+        raw_seen[entry.name] = str(entry.source)
+
+    const_seen: dict[str, str] = {}
+    for name in message_ids + [entry.name for entry in audio_entries]:
+        const_name = to_constant_name(name)
+        prev = const_seen.get(const_name)
+        if prev is not None and prev != name:
+            raise ValueError(f"常量名冲突: '{name}' 与 '{prev}' 都转换为 '{const_name}'")
+        const_seen[const_name] = name
