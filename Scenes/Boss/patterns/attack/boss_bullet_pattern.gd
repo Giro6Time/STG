@@ -53,8 +53,8 @@ func update_pattern(runtime_data: FlowPhaseRuntimeData) -> void:
 	if emitter.emission_mode == PatternEmitter.EmissionMode.STREAM and _streaming:
 		if not emitter.emit_stream_tick(runtime_data.delta):
 			_streaming = false
-			if timeline != null:
-				timeline.tick(0.0)  # 空 tick 推进轮次/完成检查
+			if timeline.is_completed():
+				mark_completed()
 		return
 
 	var triggered: bool = timeline.tick(runtime_data.delta)
@@ -172,7 +172,7 @@ func _get_bullet_layer() -> BulletLayer:
 	var tree: SceneTree = get_tree()
 	if tree == null:
 		return null
-	return tree.get_first_node_in_group("bullet_layers") as BulletLayer
+	return tree.get_first_node_in_group(BulletLayer.GROUP_NAME) as BulletLayer
 
 
 func _get_bullet_scene() -> PackedScene:

@@ -21,6 +21,9 @@ var _stream_origin: Vector2 = Vector2.ZERO
 var _stream_curve: ParametricCurve
 var _stream_timer: float = 0.0
 
+## 懒初始化兜底发射规则（spawn_rule 未注入时复用同一实例，避免每帧分配）。
+var _fallback_spawn_rule: BulletSpawnRule = null
+
 
 ## 全量发射一轮，返回本次生成的子弹（供外层如套娃绑定母弹）。
 func emit_once(bullet_layer: BulletLayer, bullet_scene: PackedScene, init_data: Dictionary, origin: Vector2) -> Array[BulletBase]:
@@ -95,4 +98,6 @@ func _get_active_sampler() -> ParameterSampler:
 func _get_active_spawn_rule() -> BulletSpawnRule:
 	if spawn_rule != null:
 		return spawn_rule
-	return BulletSpawnRule.new()
+	if _fallback_spawn_rule == null:
+		_fallback_spawn_rule = BulletSpawnRule.new()
+	return _fallback_spawn_rule
