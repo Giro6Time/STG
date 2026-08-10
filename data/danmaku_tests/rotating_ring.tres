@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="BulletPatternConfig" format=3]
+
+[ext_resource type="Script" path="res://Public/emitter/bullet_pattern_config.gd" id="1"]
+[ext_resource type="Script" path="res://Public/curve/circle_parametric_curve.gd" id="2"]
+[ext_resource type="Script" path="res://Public/sampler/uniform_parameter_sampler.gd" id="3"]
+[ext_resource type="Script" path="res://Public/emitter/timeline/repeat_timeline_driver.gd" id="4"]
+[ext_resource type="Script" path="res://Public/emitter/motion/linear_motion.gd" id="5"]
+[ext_resource type="Script" path="res://Public/emitter/bullet_behavior_config.gd" id="6"]
+[ext_resource type="PackedScene" path="res://Scenes/Bullet/BulletBase/bullet_base.tscn" id="7"]
+
+[sub_resource type="Resource" id="curve"]
+script = ExtResource("2")
+radius = 96.0
+
+[sub_resource type="Resource" id="sampler"]
+script = ExtResource("3")
+sample_count = 16
+
+[sub_resource type="Resource" id="timeline"]
+script = ExtResource("4")
+rounds = 36
+interval = 0.1
+
+[sub_resource type="Resource" id="motion"]
+script = ExtResource("5")
+speed = 90.0
+
+[sub_resource type="Resource" id="bullet"]
+script = ExtResource("6")
+bullet_scene = ExtResource("7")
+motion = SubResource("motion")
+
+[resource]
+script = ExtResource("1")
+display_name = "旋转环"
+duration = 4.0
+curve = SubResource("curve")
+sampler = SubResource("sampler")
+timeline = SubResource("timeline")
+bullet = SubResource("bullet")
+angle_increment_per_round = 10.0
