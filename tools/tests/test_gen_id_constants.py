@@ -46,5 +46,46 @@ class TestLoadMessageIds(unittest.TestCase):
             gen.load_message_ids(Path("nonexistent_messages.json"))
 
 
+class TestLoadAudioEntries(unittest.TestCase):
+    @staticmethod
+    def _write_tres(path: Path, script_class: str, name_field: str, name: str) -> None:
+        path.write_text(
+            f'[gd_resource type="Resource" script_class="{script_class}" format=3]\n'
+            "\n[resource]\n"
+            f'{name_field} = "{name}"\n',
+            encoding="utf-8",
+        )
+
+    def test_parses_bgm_and_sfx(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            audio = Path(tmp) / "audio"
+            (audio / "test").mkdir(parents=True)
+            self._write_tres(audio / "test" / "boss.tres", "AudioBgmTrack", "track_name", "test_boss")
+            self._write_tres(audio / "test" / "hit.tres", "AudioSfxEvent", "event_name", "test_hit")
+            entries = gen.load_audio_entries(audio)
+            self.assertEqual(
+                [(e.name, e.kind) for e in entries],
+                [("test_boss", "bgm"), ("test_hit", "sfx")],
+            )
+
+    def test_skips_unrelated_tres(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            audio = Path(tmp) / "audio"
+            audio.mkdir(parents=True)
+            (audio / "unrelated.tres").write_text('[gd_resource type="Resource" format=3]\n', encoding="utf-8")
+            (audio / "other.tres").write_text(
+                '[gd_resource type="Resource" script_class="SomeOtherClass" format=3]\n',
+                encoding="utf-8",
+            )
+            self.assertEqual(gen.load_audio_entries(audio), [])
+
+    def test_missing_dir_returns_empty(self) -> None:
+        self.assertEqual(gen.load_audio_entries(Path("nonexistent_audio_dir")), [])
+
+
 if __name__ == "__main__":
     unittest.main()
