@@ -25,5 +25,26 @@ class TestToConstantName(unittest.TestCase):
         self.assertEqual(gen.to_constant_name("test-boss"), "TEST_BOSS")
 
 
+class TestLoadMessageIds(unittest.TestCase):
+    def test_returns_sorted_keys(self) -> None:
+        import json
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "messages_zh.json"
+            p.write_text(
+                json.dumps({"eye_phase_2": {}, "eye_intro_warning": {}, "eye_defeated": {}}),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                gen.load_message_ids(p),
+                ["eye_defeated", "eye_intro_warning", "eye_phase_2"],
+            )
+
+    def test_missing_file_raises(self) -> None:
+        with self.assertRaises(FileNotFoundError):
+            gen.load_message_ids(Path("nonexistent_messages.json"))
+
+
 if __name__ == "__main__":
     unittest.main()

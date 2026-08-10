@@ -24,3 +24,13 @@ def to_constant_name(source: str) -> str:
     """snake_case → SCREAMING_SNAKE_CASE；非字母数字分段用下划线连接并大写。"""
     parts = re.findall(r"[A-Za-z0-9]+", source)
     return "_".join(parts).upper()
+
+
+def load_message_ids(json_path: Path = MESSAGES_JSON) -> list[str]:
+    """读取 messages_zh.json 顶层键（即消息 id），排序后返回。"""
+    if not json_path.exists():
+        raise FileNotFoundError(f"messages json 不存在: {json_path}")
+    import json
+
+    data = json.loads(json_path.read_text(encoding="utf-8"))
+    return sorted(data.keys())
