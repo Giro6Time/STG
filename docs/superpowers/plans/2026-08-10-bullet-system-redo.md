@@ -1,6 +1,6 @@
 ﻿# 弹幕系统重做 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 从零重写弹幕发射系统，实现统一模型（空间×时间×单位），彻底修正旧架构的语义错误。
 
@@ -87,24 +87,24 @@ data/danmaku_tests/            ← 演示用例（Task 14）
 - 保留 spec：`docs/superpowers/specs/2026-08-10-bullet-system-redesign.md`
 - 保留 plan：`docs/superpowers/plans/2026-08-10-bullet-system-redo.md`
 
-- [ ] **Step 1: 从基线新建实现分支**
+- [x] **Step 1: 从基线新建实现分支**
 
 Run: `git checkout -b feature/bullet-system-redo a03c34d`
 Expected: 切到新分支，旧分支 feature/curve-bullet-optimization 原封不动
 
-- [ ] **Step 2: 从旧分支恢复 spec 与 plan 文档**
+- [x] **Step 2: 从旧分支恢复 spec 与 plan 文档**
 
 Run:
 ```bash
 git checkout feature/curve-bullet-optimization -- docs/superpowers/specs/2026-08-10-bullet-system-redesign.md docs/superpowers/plans/2026-08-10-bullet-system-redo.md
 ```
 
-- [ ] **Step 3: 验证**
+- [x] **Step 3: 验证**
 
 Run: `git status --short` 与 `Test-Path` 两个文档
 Expected: 两个文档已暂存（A 状态），工作区无其他改动
 
-- [ ] **Step 4: 提交基线 + 文档**
+- [x] **Step 4: 提交基线 + 文档**
 
 ```bash
 git add docs/superpowers/
@@ -121,7 +121,7 @@ git commit -m "chore: 重做基线——新建分支，保留 spec 与实现计�
 - Produces: `ParametricCurve.sample(t: float) -> Vector2`、`ParametricCurve.tangent(t: float) -> Vector2`、`ParametricCurve.draw_debug_visual(drawer, sampler, origin, color, point_radius, line_width, tangent_length)`
 - Produces: `ParameterSampler.sample_values() -> Array[float]`
 
-- [ ] **Step 1: 创建 ParametricCurve 基类**
+- [x] **Step 1: 创建 ParametricCurve 基类**
 
 ```gdscript
 @tool
@@ -172,7 +172,7 @@ func draw_debug_visual(
 		has_previous = true
 ```
 
-- [ ] **Step 2: 创建 ParameterSampler 基类**
+- [x] **Step 2: 创建 ParameterSampler 基类**
 
 ```gdscript
 @tool
@@ -186,7 +186,7 @@ func sample_values() -> Array[float]:
 	return []
 ```
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add Public/curve/parametric_curve.gd Public/sampler/parameter_sampler.gd
@@ -206,7 +206,7 @@ git commit -m "feat: ParametricCurve 与 ParameterSampler 基类（空间层基�
 - Produces: `CircleParametricCurve.radius: float`、`CircleParametricCurve.angle_offset_degrees: float`
 - Produces: `UniformParameterSampler.start_t / end_t / sample_count / include_end`
 
-- [ ] **Step 1: 创建圆形曲线**
+- [x] **Step 1: 创建圆形曲线**
 
 ```gdscript
 @tool
@@ -225,7 +225,7 @@ func tangent(t: float) -> Vector2:
 	return Vector2(-sin(angle), cos(angle)).normalized()
 ```
 
-- [ ] **Step 2: 创建均匀采样器**
+- [x] **Step 2: 创建均匀采样器**
 
 ```gdscript
 @tool
@@ -253,12 +253,12 @@ func sample_values() -> Array[float]:
 	return result
 ```
 
-- [ ] **Step 3: 验证（创建临时预览场景或直接加载资源）**
+- [x] **Step 3: 验证（创建临时预览场景或直接加载资源）**
 
 Run: 在 Godot 打开项目，确认两个类可实例化、无 Parser Error
 Expected: 无错误
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add Public/curve/circle_parametric_curve.gd Public/sampler/uniform_parameter_sampler.gd
@@ -275,7 +275,7 @@ git commit -m "feat: CircleParametricCurve 与 UniformParameterSampler（空间�
 - Produces: `TransformCurve.base: ParametricCurve`、`rotation_degrees: float`、`scale: Vector2`、`phase_offset: float`、`offset: Vector2`
 - **关键**：演化只操作此层的通用变换字段，不碰底层 curve 内部字段（spec 修正）
 
-- [ ] **Step 1: 创建 TransformCurve**
+- [x] **Step 1: 创建 TransformCurve**
 
 ```gdscript
 @tool
@@ -296,12 +296,12 @@ func sample(t: float) -> Vector2:
 	return point.rotated(deg_to_rad(rotation_degrees)) * scale + offset
 ```
 
-- [ ] **Step 2: 验证**
+- [x] **Step 2: 验证**
 
 Run: Godot 加载项目，TransformCurve 可实例化，包任意 curve 无错误
 Expected: 无 Parser Error
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add Public/curve/transform_curve.gd
@@ -323,7 +323,7 @@ git commit -m "feat: TransformCurve 通用变换层（演化只碰此层字段�
 - Produces: `PointCurve.point: Vector2`
 - Produces: `CompositeCurve.curves: Array[ParametricCurve]`、`combine_mode: CombineMode`
 
-- [ ] **Step 1: 创建 FormulaCurve（Expression 求值，Array 传参）**
+- [x] **Step 1: 创建 FormulaCurve（Expression 求值，Array 传参）**
 
 ```gdscript
 @tool
@@ -371,7 +371,7 @@ func get_last_error() -> String:
 	return _last_error
 ```
 
-- [ ] **Step 2: 创建 PointCurve**
+- [x] **Step 2: 创建 PointCurve**
 
 ```gdscript
 @tool
@@ -384,7 +384,7 @@ func sample(_t: float) -> Vector2:
 	return point
 ```
 
-- [ ] **Step 3: 创建 CompositeCurve**
+- [x] **Step 3: 创建 CompositeCurve**
 
 ```gdscript
 @tool
@@ -413,7 +413,7 @@ func sample(t: float) -> Vector2:
 	return result
 ```
 
-- [ ] **Step 4: 验证 + 提交**
+- [x] **Step 4: 验证 + 提交**
 
 Run: Godot 加载无错误；FormulaCurve 用玫瑰表达式 `r*(1+0.3*cos(5*TAU*t))*cos(TAU*t)` 采样有非零结果
 ```bash
@@ -430,7 +430,7 @@ git commit -m "feat: FormulaCurve/PointCurve/CompositeCurve（空间层完成）
 - Produces: `TimelineDriver.initial_delay: float`、`begin()`、`tick(delta) -> bool`（返回 true=到一轮时机）、`get_round() -> int`、`is_completed() -> bool`
 - 信号: `round_triggered(round_index: int)`
 
-- [ ] **Step 1: 创建 TimelineDriver 基类**
+- [x] **Step 1: 创建 TimelineDriver 基类**
 
 ```gdscript
 class_name TimelineDriver
@@ -502,7 +502,7 @@ func _trigger_round() -> bool:
 	return true
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add Public/emitter/timeline/timeline_driver.gd
@@ -520,7 +520,7 @@ git commit -m "feat: TimelineDriver 基类（时间采样器，含初始等待�
 - Consumes: `TimelineDriver`（Task 5）
 - Produces: `RepeatTimelineDriver.rounds: int`（≤0 无限）、`interval: float`、循环变量 `var_names / var_inits / var_increments: Array`、`get_vars() -> Dictionary`
 
-- [ ] **Step 1: 创建 RepeatTimelineDriver**
+- [x] **Step 1: 创建 RepeatTimelineDriver**
 
 ```gdscript
 class_name RepeatTimelineDriver
@@ -579,12 +579,12 @@ func get_vars() -> Dictionary:
 	return _vars
 ```
 
-- [ ] **Step 2: 验证（临时场景测试）**
+- [x] **Step 2: 验证（临时场景测试）**
 
 Run: Godot 中实例化 RepeatTimelineDriver，`rounds=3, interval=0.1, initial_delay=0.5`，调用 `begin()` 后按 0.05 步进 tick，确认：前 0.5s 不触发、之后每 0.1s 触发一次、3 次后 completed
 Expected: 行为符合上述时序
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add Public/emitter/timeline/repeat_timeline_driver.gd
@@ -605,7 +605,7 @@ git commit -m "feat: RepeatTimelineDriver 均匀时间采样（次数/间隔/初
 - Produces: `BurstTwoStageMotion.burst_speed / burst_acceleration / burst_duration / cruise_speed / cruise_acceleration`
 - Produces: `FollowCurveMotion.curve / speed`
 
-- [ ] **Step 1: 创建 BulletMotion 基类**
+- [x] **Step 1: 创建 BulletMotion 基类**
 
 ```gdscript
 class_name BulletMotion
@@ -622,7 +622,7 @@ func process(_bullet: BulletBase, _delta: float) -> void:
 	pass
 ```
 
-- [ ] **Step 2: 创建 LinearMotion**
+- [x] **Step 2: 创建 LinearMotion**
 
 ```gdscript
 class_name LinearMotion
@@ -643,7 +643,7 @@ func process(bullet: BulletBase, delta: float) -> void:
 	bullet.global_position += _velocity.normalized() * _speed * delta
 ```
 
-- [ ] **Step 3: 创建 BurstTwoStageMotion**
+- [x] **Step 3: 创建 BurstTwoStageMotion**
 
 ```gdscript
 class_name BurstTwoStageMotion
@@ -689,7 +689,7 @@ func process(bullet: BulletBase, delta: float) -> void:
 	bullet.global_position += _velocity.normalized() * _speed * delta
 ```
 
-- [ ] **Step 4: 创建 FollowCurveMotion**
+- [x] **Step 4: 创建 FollowCurveMotion**
 
 ```gdscript
 class_name FollowCurveMotion
@@ -712,7 +712,7 @@ func process(bullet: BulletBase, delta: float) -> void:
 	bullet.global_position = _origin + curve.sample(_t)
 ```
 
-- [ ] **Step 5: 提交**
+- [x] **Step 5: 提交**
 
 ```bash
 git add Public/emitter/motion/
@@ -731,7 +731,7 @@ git commit -m "feat: BulletMotion 策略家族（Linear/BurstTwoStage/FollowCurv
 - Consumes: `BulletMotion`（Task 7）
 - Produces: `BulletBase.setup(owner_layer, spawn_position, init_data)`、`recycle()`、`try_mark_grazed()`、`motion: BulletMotion` 字段
 
-- [ ] **Step 1: 重写 bullet_base.gd**
+- [x] **Step 1: 重写 bullet_base.gd**
 
 ```gdscript
 class_name BulletBase
@@ -830,12 +830,12 @@ func _draw() -> void:
 	DebugHelper.draw_collision_shape(self, self as Area2D)
 ```
 
-- [ ] **Step 2: 确认 bullet_base.tscn 引用**（不改脚本路径，Godot 自动更新 uid）
+- [x] **Step 2: 确认 bullet_base.tscn 引用**（不改脚本路径，Godot 自动更新 uid）
 
 Run: 打开 bullet_base.tscn，确认 script 指向 bullet_base.gd，无缺失
 Expected: 无错误
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add Scenes/Bullet/BulletBase/
@@ -853,7 +853,7 @@ git commit -m "feat: BulletBase 只做生命周期委托，运动学全归 Bulle
 - Produces: `BulletSpawnRule.direction_mode / bullet_speed / bullet_acceleration / damage / bullet_lifetime / motion`、`spawn_bullet(layer, scene, pos, dir, init_data)`
 - Produces: `PatternEmitter.curve / sampler / spawn_rule`、`emit_once(layer, scene, init_data, origin)`（全量）、`emit_begin + emit_next_step + emit_stream_tick`（逐颗）
 
-- [ ] **Step 1: 创建 BulletSpawnRule（方向预设 + 发射）**
+- [x] **Step 1: 创建 BulletSpawnRule（方向预设 + 发射）**
 
 ```gdscript
 class_name BulletSpawnRule
@@ -960,7 +960,7 @@ func spawn_bullet(
 	return bullet_layer.spawn_bullet(bullet_scene, spawn_position, init_data)
 ```
 
-- [ ] **Step 2: 创建 PatternEmitter（全量 + 逐颗）**
+- [x] **Step 2: 创建 PatternEmitter（全量 + 逐颗）**
 
 ```gdscript
 class_name PatternEmitter
@@ -1058,7 +1058,7 @@ func _get_active_spawn_rule() -> BulletSpawnRule:
 	return BulletSpawnRule.new()
 ```
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add Public/emitter/bullet_spawn_rule.gd Public/emitter/pattern_emitter.gd
@@ -1074,7 +1074,7 @@ git commit -m "feat: BulletSpawnRule 方向预设与 PatternEmitter 全量/逐�
 - Consumes: `FlowPattern`（现有，不改）
 - Produces: `BossAttackPattern`（泛"Boss 攻击行为"抽象，只放骨架与 owner 访问）
 
-- [ ] **Step 1: 创建 BossAttackPattern（只放通用骨架）**
+- [x] **Step 1: 创建 BossAttackPattern（只放通用骨架）**
 
 ```gdscript
 class_name BossAttackPattern
@@ -1098,7 +1098,7 @@ func stop_pattern() -> void:
 	super.stop_pattern()
 ```
 
-- [ ] **Step 2: 提交**
+- [x] **Step 2: 提交**
 
 ```bash
 git add Scenes/Boss/patterns/attack/boss_attack_pattern.gd
@@ -1116,7 +1116,7 @@ git commit -m "feat: BossAttackPattern 泛攻击基类（只放骨架，弹幕�
 - Consumes: `BossAttackPattern`（Task 10）、`TimelineDriver`（Task 5）、`PatternEmitter`（Task 9）、`BulletSpawnRule`（Task 9）、`BulletPatternConfig`（Task 12）
 - Produces: `BossBulletPattern.origin: Vector2`、`emitter: PatternEmitter`、`timeline: TimelineDriver`、`sub_shape: BulletPatternConfig`、`_emit_round(round_index, vars)`
 
-- [ ] **Step 1: 创建 BossBulletPattern**
+- [x] **Step 1: 创建 BossBulletPattern**
 
 ```gdscript
 class_name BossBulletPattern
@@ -1227,12 +1227,12 @@ func _get_bullet_init_data() -> Dictionary:
 
 > **scene 归属定案**：bullet_scene 唯一持有者是 BulletBehaviorConfig，经 config.build 注入 emitter 元数据，_get_bullet_scene() 从 emitter 读取。
 
-- [ ] **Step 2: 验证**
+- [x] **Step 2: 验证**
 
 Run: Godot 加载无 Parser Error
 Expected: 无错误（依赖 Task 12 完成后再实际跑）
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add Scenes/Boss/patterns/attack/boss_bullet_pattern.gd
@@ -1252,7 +1252,7 @@ git commit -m "feat: BossBulletPattern 弹幕组装（空间×时间×发射规�
 - Produces: `BulletBehaviorConfig.bullet_scene / motion / damage / bullet_lifetime`
 - Produces: `BulletPatternConfig.display_name / duration / origin_mode / origin_offset / curve / sampler / timeline / direction_mode / bullet / sub_shape`、`build() -> BossBulletPattern`
 
-- [ ] **Step 1: 创建 BulletBehaviorConfig**
+- [x] **Step 1: 创建 BulletBehaviorConfig**
 
 ```gdscript
 class_name BulletBehaviorConfig
@@ -1266,7 +1266,7 @@ extends Resource
 @export var bullet_lifetime: float = 6.0
 ```
 
-- [ ] **Step 2: 创建 BulletPatternConfig**
+- [x] **Step 2: 创建 BulletPatternConfig**
 
 ```gdscript
 class_name BulletPatternConfig
@@ -1363,12 +1363,12 @@ func _get_lifetime() -> float:
 	return bullet.bullet_lifetime if bullet != null else 6.0
 ```
 
-- [ ] **Step 3: 验证（临时场景）**
+- [x] **Step 3: 验证（临时场景）**
 
 Run: 创建测试 .tres 引用 BulletPatternConfig，build() 出 pattern，无错误
 Expected: build 成功，pattern 字段正确
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add Public/emitter/bullet_behavior_config.gd Public/emitter/bullet_pattern_config.gd
@@ -1386,7 +1386,7 @@ git commit -m "feat: 配置层 BulletPatternConfig/BulletBehaviorConfig（Resour
 - Consumes: `BulletPatternConfig`（Task 12）、`BossBulletPattern`（Task 11）
 - Produces: 测试场景，扫描 `data/danmaku_tests/*.tres` 加载全部用例
 
-- [ ] **Step 1: 创建测试场景 runner（扫描 .tres 自动加载）**
+- [x] **Step 1: 创建测试场景 runner（扫描 .tres 自动加载）**
 
 ```gdscript
 extends Node2D
@@ -1600,7 +1600,7 @@ func _update_ui() -> void:
 		_item_list.ensure_current_is_visible()
 ```
 
-- [ ] **Step 2: 创建 danmaku_test.tscn 与 player**
+- [x] **Step 2: 创建 danmaku_test.tscn 与 player**
 
 `danmaku_test.tscn`（引用 runner + BulletLayer + MockPlayer）：
 ```
@@ -1625,7 +1625,7 @@ func _ready() -> void:
 	add_to_group("players")
 ```
 
-- [ ] **Step 3: 提交**
+- [x] **Step 3: 提交**
 
 ```bash
 git add Scenes/Bullet/Test/
@@ -1643,7 +1643,7 @@ git commit -m "feat: 弹幕测试场景（扫描 .tres 数据驱动，列表/搜
 - Consumes: `BulletPatternConfig`（Task 12）
 - 每个 .tres 是一个 BulletPatternConfig 子资源配置
 
-- [ ] **Step 1: 创建旋转环用例（参考模板）**
+- [x] **Step 1: 创建旋转环用例（参考模板）**
 
 ```text
 [gd_resource type="Resource" script_class="BulletPatternConfig" format=3]
@@ -1689,7 +1689,7 @@ angle_increment_per_round = 10.0
 
 > **角度演化定案**：旋转环的"每轮转 10°"通过 `BulletPatternConfig.angle_increment_per_round` 表达（config.build 包一层 TransformCurve，Pattern 每轮更新 rotation_degrees）——操作通用变换层，不依赖底层曲线类型。螺旋同理用 `radius_increment_per_round`（更新 scale）。
 
-- [ ] **Step 2: 创建其余 6 个用例**（同模板，按各自参数）
+- [x] **Step 2: 创建其余 6 个用例**（同模板，按各自参数）
   - `spiral.tres`：radius 演化（TransformCurve.scale 或 var 半径）
   - `flower.tres`：FormulaCurve 玫瑰 + TransformCurve
   - `fan_aimed.tres`：direction_mode=AIM_PLAYER + jitter
@@ -1697,12 +1697,12 @@ angle_increment_per_round = 10.0
   - `burst_two_stage.tres`：BurstTwoStageMotion
   - `follow_curve.tres`：FollowCurveMotion
 
-- [ ] **Step 3: 运行测试场景验证**
+- [x] **Step 3: 运行测试场景验证**
 
 Run: Godot 运行 `Scenes/Bullet/Test/danmaku_test.tscn`
 Expected: 7 个用例依次演示，效果符合各自描述
 
-- [ ] **Step 4: 提交**
+- [x] **Step 4: 提交**
 
 ```bash
 git add data/danmaku_tests/
@@ -1717,7 +1717,7 @@ git commit -m "feat: 7 个弹幕演示用例（旋转环/螺旋/花瓣/扇形/�
 - Create/Modify: `docs/superpowers/plans/2026-08-10-bullet-system-redo.md`（本计划，标记完成）
 - Modify: `AGENTS.md`（写入类型关系检查流程）
 
-- [ ] **Step 1: 更新 AGENTS.md 加架构检查**
+- [x] **Step 1: 更新 AGENTS.md 加架构检查**
 
 在 AGENTS.md 添加：
 ```markdown
@@ -1729,7 +1729,7 @@ git commit -m "feat: 7 个弹幕演示用例（旋转环/螺旋/花瓣/扇形/�
 4. 被修改的类，其类名承诺的语义是否被篡改？
 ```
 
-- [ ] **Step 2: 全量验证 + 最终 commit**
+- [x] **Step 2: 全量验证 + 最终 commit**
 
 Run: 测试场景全 7 用例通过；`git status` 干净
 ```bash
