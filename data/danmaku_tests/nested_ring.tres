@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="BulletPatternConfig" format=3 uid="uid://nestedring0001"]
+[gd_resource type="Resource" script_class="BulletPatternConfig" format=3 uid="uid://ccwbjasoirdu3"]
 
 [ext_resource type="Script" uid="uid://bjg1r7b7ekm80" path="res://Public/emitter/bullet_pattern_config.gd" id="1"]
-[ext_resource type="Script" uid="uid://bjdnvss0hpudc" path="res://Public/curve/point_curve.gd" id="2"]
+[ext_resource type="Script" uid="uid://bjdnvss0hpudc" path="res://Public/curve/formula_curve.gd" id="2"]
 [ext_resource type="Script" uid="uid://d1dqcp81hhboj" path="res://Public/sampler/uniform_parameter_sampler.gd" id="3"]
 [ext_resource type="Script" uid="uid://c0rrlh4s8galh" path="res://Public/emitter/timeline/repeat_timeline_driver.gd" id="4"]
 [ext_resource type="Script" uid="uid://bpccgfm6qy4ta" path="res://Public/emitter/motion/linear_motion.gd" id="5"]
@@ -11,7 +11,6 @@
 
 [sub_resource type="Resource" id="outer_motion"]
 script = ExtResource("5")
-speed = 90.0
 
 [sub_resource type="Resource" id="outer_bullet"]
 script = ExtResource("6")
@@ -24,11 +23,6 @@ script = ExtResource("2")
 [sub_resource type="Resource" id="outer_sampler"]
 script = ExtResource("3")
 sample_count = 1
-
-[sub_resource type="Resource" id="outer_timeline"]
-script = ExtResource("4")
-rounds = 8
-interval = 0.5
 
 [sub_resource type="Resource" id="inner_motion"]
 script = ExtResource("5")
@@ -61,6 +55,10 @@ sampler = SubResource("inner_sampler")
 timeline = SubResource("inner_timeline")
 direction_mode = 1
 bullet = SubResource("inner_bullet")
+
+[sub_resource type="Resource" id="outer_timeline"]
+script = ExtResource("4")
+rounds = 1
 
 [resource]
 script = ExtResource("1")
