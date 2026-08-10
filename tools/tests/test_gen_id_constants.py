@@ -108,5 +108,35 @@ class TestCheckDuplicates(unittest.TestCase):
         gen.check_duplicates(["eye_intro_warning"], entries)
 
 
+class TestBuildClasses(unittest.TestCase):
+    def test_message_class(self) -> None:
+        content = gen.build_message_class(["eye_intro_warning"])
+        self.assertIn("class_name MessageId", content)
+        self.assertIn('const EYE_INTRO_WARNING: StringName = &"eye_intro_warning"', content)
+        self.assertIn("自动生成，勿手改", content)
+
+    def test_audio_class_sections(self) -> None:
+        entries = [
+            gen.AudioEntry(name="test_hit", kind="sfx", source=Path("h.tres")),
+            gen.AudioEntry(name="test_stage", kind="bgm", source=Path("s.tres")),
+            gen.AudioEntry(name="test_boss", kind="bgm", source=Path("b.tres")),
+        ]
+        content = gen.build_audio_class(entries)
+        self.assertIn("class_name AudioId", content)
+        self.assertIn("# BGM", content)
+        self.assertIn("# SFX", content)
+        self.assertIn('const TEST_STAGE: StringName = &"test_stage"', content)
+        self.assertIn('const TEST_BOSS: StringName = &"test_boss"', content)
+        self.assertIn('const TEST_HIT: StringName = &"test_hit"', content)
+        # BGM 组内按名字排序：TEST_BOSS 在 TEST_STAGE 之前
+        self.assertLess(content.index("TEST_BOSS"), content.index("TEST_STAGE"))
+
+    def test_audio_class_empty(self) -> None:
+        content = gen.build_audio_class([])
+        self.assertIn("class_name AudioId", content)
+        self.assertNotIn("# BGM", content)
+        self.assertNotIn("# SFX", content)
+
+
 if __name__ == "__main__":
     unittest.main()

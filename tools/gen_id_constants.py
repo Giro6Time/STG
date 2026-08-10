@@ -96,3 +96,28 @@ def check_duplicates(message_ids: list[str], audio_entries: list[AudioEntry]) ->
         if prev is not None and prev != name:
             raise ValueError(f"常量名冲突: '{name}' 与 '{prev}' 都转换为 '{const_name}'")
         const_seen[const_name] = name
+
+
+def build_message_class(message_ids: list[str]) -> str:
+    """生成 MessageId 常量类文本。"""
+    lines = [HEADER, "class_name MessageId", ""]
+    for mid in message_ids:
+        lines.append(f'const {to_constant_name(mid)}: StringName = &"{mid}"')
+    return "\n".join(lines) + "\n"
+
+
+def build_audio_class(audio_entries: list[AudioEntry]) -> str:
+    """生成 AudioId 常量类文本：BGM 段与 SFX 段分注释，组内按名字排序。"""
+    bgm = sorted((e for e in audio_entries if e.kind == "bgm"), key=lambda e: e.name)
+    sfx = sorted((e for e in audio_entries if e.kind == "sfx"), key=lambda e: e.name)
+    lines = [HEADER, "class_name AudioId", ""]
+    if bgm:
+        lines.append("# BGM")
+        for entry in bgm:
+            lines.append(f'const {to_constant_name(entry.name)}: StringName = &"{entry.name}"')
+        lines.append("")
+    if sfx:
+        lines.append("# SFX")
+        for entry in sfx:
+            lines.append(f'const {to_constant_name(entry.name)}: StringName = &"{entry.name}"')
+    return "\n".join(lines) + "\n"
