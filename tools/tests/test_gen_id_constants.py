@@ -107,6 +107,18 @@ class TestCheckDuplicates(unittest.TestCase):
         # 不抛异常即通过
         gen.check_duplicates(["eye_intro_warning"], entries)
 
+    def test_invalid_empty_name_raises(self) -> None:
+        # 全空/全非拉丁字母 → 转换后常量为空字符串，非法 GDScript 标识符
+        self.assertEqual(gen.to_constant_name(""), "")
+        with self.assertRaises(ValueError):
+            gen.check_duplicates([""], [])
+
+    def test_invalid_digit_leading_name_raises(self) -> None:
+        # 转换后以数字开头（如 "2D_BOSS"），非法 GDScript 标识符
+        self.assertEqual(gen.to_constant_name("2d_boss"), "2D_BOSS")
+        with self.assertRaises(ValueError):
+            gen.check_duplicates(["2d_boss"], [])
+
 
 class TestMain(unittest.TestCase):
     def test_check_reports_stale_when_missing(self) -> None:
@@ -140,6 +152,35 @@ class TestMain(unittest.TestCase):
                 self.assertEqual(code2, 0)
                 content2 = (out / "message_ids.gd").read_text(encoding="utf-8")
                 self.assertEqual(content1, content2)
+            finally:
+                gen.OUT_DIR = original
+
+    def test_check_reports_stale_when_content_differs(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            original = gen.OUT_DIR
+            gen.OUT_DIR = out
+            try:
+                # 先全量生成，再故意写入错误内容模拟本地被改动
+                self.assertEqual(gen.main([]), 0)
+                (out / "message_ids.gd").write_text("garbage", encoding="utf-8")
+                self.assertEqual(gen.main(["--check"]), 1)
+            finally:
+                gen.OUT_DIR = original
+
+    def test_check_returns_0_when_up_to_date(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            original = gen.OUT_DIR
+            gen.OUT_DIR = out
+            try:
+                # 全量生成后内容一致，--check 应为 0
+                self.assertEqual(gen.main([]), 0)
+                self.assertEqual(gen.main(["--check"]), 0)
             finally:
                 gen.OUT_DIR = original
 

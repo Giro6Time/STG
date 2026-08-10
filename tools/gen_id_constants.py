@@ -92,6 +92,8 @@ def check_duplicates(message_ids: list[str], audio_entries: list[AudioEntry]) ->
     const_seen: dict[str, str] = {}
     for name in message_ids + [entry.name for entry in audio_entries]:
         const_name = to_constant_name(name)
+        if not const_name or const_name[0].isdigit():
+            raise ValueError(f"非法常量名: '{name}' 转换为 '{const_name}'（空或数字开头，不是合法 GDScript 标识符）")
         prev = const_seen.get(const_name)
         if prev is not None and prev != name:
             raise ValueError(f"常量名冲突: '{name}' 与 '{prev}' 都转换为 '{const_name}'")
