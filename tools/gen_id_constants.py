@@ -121,3 +121,49 @@ def build_audio_class(audio_entries: list[AudioEntry]) -> str:
         for entry in sfx:
             lines.append(f'const {to_constant_name(entry.name)}: StringName = &"{entry.name}"')
     return "\n".join(lines) + "\n"
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI 入口：全量生成或 --check 校验。返回 0 成功 / 1 失败。"""
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(description="生成 GDScript ID 常量类（MessageId / AudioId）")
+    parser.add_argument("--check", action="store_true", help="只检查是否 stale，不写文件")
+    args = parser.parse_args(argv)
+
+    try:
+        message_ids = load_message_ids()
+        audio_entries = load_audio_entries()
+        check_duplicates(message_ids, audio_entries)
+        outputs = {
+            OUT_DIR / "message_ids.gd": build_message_class(message_ids),
+            OUT_DIR / "audio_ids.gd": build_audio_class(audio_entries),
+        }
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+
+    if args.check:
+        stale = [
+            path
+            for path, content in outputs.items()
+            if not path.exists() or path.read_text(encoding="utf-8") != content
+        ]
+        if stale:
+            print(f"stale: {', '.join(str(p) for p in stale)}（请先运行全量生成）", file=sys.stderr)
+            return 1
+        print("up to date")
+        return 0
+
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    for path, content in outputs.items():
+        path.write_text(content, encoding="utf-8")
+        print(f"generated {path}")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+
+    raise SystemExit(main(sys.argv[1:]))

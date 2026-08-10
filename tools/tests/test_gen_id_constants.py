@@ -108,6 +108,42 @@ class TestCheckDuplicates(unittest.TestCase):
         gen.check_duplicates(["eye_intro_warning"], entries)
 
 
+class TestMain(unittest.TestCase):
+    def test_check_reports_stale_when_missing(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            original = gen.OUT_DIR
+            gen.OUT_DIR = out  # monkeypatch 输出目录
+            try:
+                code = gen.main(["--check"])
+            finally:
+                gen.OUT_DIR = original
+            self.assertEqual(code, 1)
+
+    def test_generate_writes_files(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            original = gen.OUT_DIR
+            gen.OUT_DIR = out
+            try:
+                code = gen.main([])
+                self.assertEqual(code, 0)
+                self.assertTrue((out / "message_ids.gd").exists())
+                self.assertTrue((out / "audio_ids.gd").exists())
+                # 幂等：再跑一次内容一致
+                content1 = (out / "message_ids.gd").read_text(encoding="utf-8")
+                code2 = gen.main([])
+                self.assertEqual(code2, 0)
+                content2 = (out / "message_ids.gd").read_text(encoding="utf-8")
+                self.assertEqual(content1, content2)
+            finally:
+                gen.OUT_DIR = original
+
+
 class TestBuildClasses(unittest.TestCase):
     def test_message_class(self) -> None:
         content = gen.build_message_class(["eye_intro_warning"])
