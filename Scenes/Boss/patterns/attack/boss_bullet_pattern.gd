@@ -19,6 +19,13 @@ var sub_shape: BulletPatternConfig = null
 ## STREAM 模式逐颗推进状态。
 var _streaming: bool = false
 
+## 套娃绑定：母弹（BulletBase）→ 内层子 pattern（BossBulletPattern）。
+## 每颗母弹生成时按 sub_shape 构造一个内层 pattern，origin 每帧跟随母弹位置。
+var _sub_bindings: Array[Dictionary] = []
+
+## 子 pattern 驱动用的运行时数据（复用，避免每帧分配）。
+var _sub_runtime_data: FlowPhaseRuntimeData = null
+
 
 func start_pattern(pattern_owner: Node) -> void:
 	super.start_pattern(pattern_owner)
@@ -28,6 +35,10 @@ func start_pattern(pattern_owner: Node) -> void:
 
 func stop_pattern() -> void:
 	super.stop_pattern()
+	# 清理所有套娃子 pattern
+	for binding in _sub_bindings:
+		_release_sub_binding(binding)
+	_sub_bindings.clear()
 	if timeline != null:
 		timeline = null
 
@@ -57,8 +68,10 @@ func update_pattern(runtime_data: FlowPhaseRuntimeData) -> void:
 			_streaming = true
 			emitter.emit_next_step()
 		else:
-			emitter.emit_once(_get_bullet_layer(), _get_bullet_scene(), _get_bullet_init_data(), origin)
+			var spawned: Array[BulletBase] = emitter.emit_once(_get_bullet_layer(), _get_bullet_scene(), _get_bullet_init_data(), origin)
+			_bind_sub_shapes(spawned)
 
+	# 套娃子 pattern 由 _process 独立驱动（跟随母弹位置），这里不再重复 tick
 	if timeline.is_completed():
 		mark_completed()
 
@@ -79,6 +92,74 @@ func _apply_evolution(round_index: int) -> void:
 ## 本轮发射前的钩子（子类可重写做自定义动作）。
 func _emit_round(_round_index: int, _vars: Dictionary) -> void:
 	pass
+
+
+# --- 套娃（sub_shape）递归发射 ---
+
+## 子 pattern 独立于外层 pattern 的生命周期驱动（母弹回收前持续喷圈）。
+func _process(delta: float) -> void:
+	if _sub_bindings.is_empty():
+		return
+	if _sub_runtime_data == null:
+		_sub_runtime_data = FlowPhaseRuntimeData.new()
+	_sub_runtime_data.setup(self, delta, 0.0)
+	_update_sub_patterns(_sub_runtime_data)
+
+
+## 给本轮 spawn 的每颗母弹绑定一个内层子 pattern（sub_shape 配置）。
+func _bind_sub_shapes(spawned: Array[BulletBase]) -> void:
+	if sub_shape == null or spawned.is_empty():
+		return
+	for bullet in spawned:
+		if bullet == null or not is_instance_valid(bullet):
+			continue
+		var inner: BossBulletPattern = sub_shape.build(bullet)
+		inner.name = "SubShape_%d" % bullet.get_instance_id()
+		add_child(inner)
+		inner.start_pattern(bullet)
+		# 绑定字典必须为同一实例（signal 回调按引用传递，has() 才生效）
+		var binding: Dictionary = {"bullet": bullet, "pattern": inner}
+		var callback := _on_sub_bullet_recycled.bind(binding)
+		binding["callback"] = callback
+		_sub_bindings.append(binding)
+		bullet.recycled.connect(callback)
+
+
+## 每帧驱动所有套娃子 pattern：origin 跟随母弹位置，再推进内层发射。
+func _update_sub_patterns(runtime_data: FlowPhaseRuntimeData) -> void:
+	if _sub_bindings.is_empty():
+		return
+	for i in range(_sub_bindings.size() - 1, -1, -1):
+		var binding: Dictionary = _sub_bindings[i]
+		var bullet: BulletBase = binding["bullet"]
+		var inner: BossBulletPattern = binding["pattern"]
+		if not is_instance_valid(bullet) or bullet.is_queued_for_deletion():
+			_release_sub_binding(binding)
+			_sub_bindings.remove_at(i)
+			continue
+		inner.origin = bullet.global_position
+		inner.update_pattern(runtime_data)
+
+
+## 母弹被回收（进对象池）时释放对应子 pattern。
+func _on_sub_bullet_recycled(binding: Dictionary) -> void:
+	if not _sub_bindings.has(binding):
+		return
+	_release_sub_binding(binding)
+	_sub_bindings.erase(binding)
+
+
+## 停止并释放单个套娃子 pattern，断开母弹信号。
+func _release_sub_binding(binding: Dictionary) -> void:
+	var bullet: BulletBase = binding.get("bullet")
+	var inner: BossBulletPattern = binding.get("pattern")
+	var callback: Callable = binding.get("callback", Callable())
+	if bullet != null and is_instance_valid(bullet):
+		if callback.is_valid() and bullet.recycled.is_connected(callback):
+			bullet.recycled.disconnect(callback)
+	if inner != null and is_instance_valid(inner):
+		inner.stop_pattern()
+		inner.queue_free()
 
 
 func _get_timeline_vars() -> Dictionary:

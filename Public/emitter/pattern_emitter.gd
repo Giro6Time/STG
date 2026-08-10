@@ -22,9 +22,11 @@ var _stream_curve: ParametricCurve
 var _stream_timer: float = 0.0
 
 
-func emit_once(bullet_layer: BulletLayer, bullet_scene: PackedScene, init_data: Dictionary, origin: Vector2) -> void:
+## 全量发射一轮，返回本次生成的子弹（供外层如套娃绑定母弹）。
+func emit_once(bullet_layer: BulletLayer, bullet_scene: PackedScene, init_data: Dictionary, origin: Vector2) -> Array[BulletBase]:
+	var spawned: Array[BulletBase] = []
 	if bullet_layer == null:
-		return
+		return spawned
 	var active_curve := _get_active_curve()
 	var active_sampler := _get_active_sampler()
 	var active_spawn_rule := _get_active_spawn_rule()
@@ -33,7 +35,10 @@ func emit_once(bullet_layer: BulletLayer, bullet_scene: PackedScene, init_data: 
 		var t: float = values[index]
 		var local_point: Vector2 = active_curve.sample(t)
 		var tangent: Vector2 = active_curve.tangent(t)
-		active_spawn_rule.spawn_from_curve(bullet_layer, bullet_scene, origin, local_point, tangent, init_data)
+		var bullet: BulletBase = active_spawn_rule.spawn_from_curve(bullet_layer, bullet_scene, origin, local_point, tangent, init_data)
+		if bullet != null:
+			spawned.append(bullet)
+	return spawned
 
 
 func emit_begin(bullet_layer: BulletLayer, bullet_scene: PackedScene, init_data: Dictionary, origin: Vector2) -> int:

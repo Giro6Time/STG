@@ -4,6 +4,9 @@ extends Area2D
 ## 基础子弹：负责生命周期（生成/回收/碰撞/擦弹）。
 ## 运动学完全委托给 BulletMotion 策略，自身不保留速度/方向字段。
 
+## 子弹被回收（进入对象池）时发出，供外层逻辑（如套娃子形状）清理关联。
+signal recycled
+
 var damage: int = 1
 var has_grazed: bool = false
 var lifetime: float = 0.0
@@ -51,6 +54,7 @@ func recycle() -> void:
 	visible = false
 	set_process(false)
 	set_physics_process(false)
+	recycled.emit()
 	call_deferred("_do_recycle")
 
 
