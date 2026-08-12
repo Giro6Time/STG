@@ -1,0 +1,30 @@
+class_name MinionWaveSegment
+extends LevelSegment
+
+# 小怪波次段：声明本波刷什么敌人、刷多少、何时刷。非阻塞（completion 默认 null），
+# 触发即完成，配合 start_delay 形成并行波次（不等待上一波清空）。
+
+## 本波次生成的敌人场景。
+@export var enemy_scene: PackedScene
+## 本波次敌人总数。
+@export var count: int = 0
+## 相邻敌人生成间隔（秒）。
+@export var spawn_interval: float = 0.5
+## 生成位置列表（世界坐标）；为空时默认在屏幕顶部随机。
+@export var spawn_positions: Array[Vector2] = []
+
+
+func get_enemy_scene() -> PackedScene:
+	return enemy_scene
+
+
+func get_spawn_count() -> int:
+	return count
+
+
+func get_spawn_interval() -> float:
+	return spawn_interval
+
+
+func get_spawn_positions() -> Array[Vector2]:
+	return spawn_positions
