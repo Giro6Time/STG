@@ -11,6 +11,9 @@ var _phase_message_ids: Dictionary = {}
 
 var boss: Boss
 
+# 完成信号接收标志：供 _completion_signal_waiter 轮询。
+var _completion_signal_received: bool = false
+
 
 # 按关卡配置异步装配：null 则警告并返回。
 func _ready() -> void:
@@ -61,16 +64,160 @@ func _on_player_game_over() -> void:
 	get_tree().call_deferred("reload_current_scene")
 
 
-# 按顺序处理每个流程段；本次只有 boss 段，未知类型警告并跳过。
+# 按顺序消费每个流程段：等待激活 → 执行段动作 → 等待完成（非阻塞段立即推进）。
 func _consume_segments() -> void:
 	for segment in level_definition.segments:
-		if segment is BossSegment:
-			await _spawn_boss(segment as BossSegment)
-		else:
+		if segment == null:
+			continue
+		await _wait_for_activate(segment)
+		_run_segment(segment)
+		await _wait_for_completion(segment)
+
+
+# 按段类型分发执行动作；未知类型警告并跳过。
+func _run_segment(segment: LevelSegment) -> void:
+	if segment is BossSegment:
+		await _spawn_boss(segment as BossSegment)
+	elif segment is MinionWaveSegment:
+		_spawn_wave(segment as MinionWaveSegment)
+	else:
+		DebugState.debug_log("LevelManager: 未知关卡段类型 '%s'，跳过" % segment.type, "Level")
+
+
+# 等待段激活条件：start_delay 计时（相对上一段触发）后，等待 await_signal 信号。
+# await_signal 为空则只等 start_delay。
+func _wait_for_activate(segment: LevelSegment) -> void:
+	if segment.start_delay > 0.0:
+		await get_tree().create_timer(segment.start_delay).timeout
+
+	if not segment.await_signal.is_empty():
+		await _await_signal_once(segment.await_signal)
+
+
+# 信号名 → 持有者节点映射。Resource 不持有场景对象，LevelManager 维护映射。
+# 新增信号名 = 这里加一行。
+func _get_signal_holder(signal_name: String) -> Node:
+	match signal_name:
+		"boss_died":
+			return boss
+		"boss_phase_changed":
+			return boss
+		_:
+			return null
+
+
+# 等待段完成：非阻塞（无有效 completion）立即返回；阻塞则 OR 条件任一满足即返回。
+# 防死锁：wait_time 超时兜底，wait_group_empty 轮询带上限。
+func _wait_for_completion(segment: LevelSegment) -> void:
+	if segment.is_non_blocking():
+		return
+
+	var completion: SegmentCompletion = segment.completion
+
+	if completion.wait_time > 0.0:
+		await get_tree().create_timer(completion.wait_time).timeout
+		return
+
+	if not completion.await_signal.is_empty():
+		await _await_signal_once(completion.await_signal)
+		return
+
+	if not completion.wait_group_empty.is_empty():
+		await _await_group_empty(completion.wait_group_empty)
+		return
+
+	if completion.wait_messages_done:
+		await _await_messages_done()
+		return
+
+	# completion 存在但全空：视为立即完成（防御）。
+	DebugState.debug_log("LevelManager: 完成条件为空，立即推进", "Level")
+
+
+# 等待某信号触发一次。信号名 → 实际信号通过 _get_signal_holder + match 解析。
+func _await_signal_once(signal_name: String) -> void:
+	var signal_holder: Node = _get_signal_holder(signal_name)
+	if signal_holder == null:
+		DebugState.debug_log(
+			"LevelManager: 信号 '%s' 未注册，视为立即完成" % signal_name,
+			"Level"
+		)
+		return
+
+	_completion_signal_received = false
+	match signal_name:
+		"boss_died":
+			if not signal_holder.died.is_connected(_on_completion_signal):
+				signal_holder.died.connect(_on_completion_signal)
+			await _completion_signal_waiter()
+		"boss_phase_changed":
+			if not signal_holder.phase_changed.is_connected(_on_completion_signal):
+				signal_holder.phase_changed.connect(_on_completion_signal)
+			await _completion_signal_waiter()
+		_:
+			DebugState.debug_log("LevelManager: 信号 '%s' 未处理" % signal_name, "Level")
+
+
+# 轮询等待完成信号接收标志（信号回调置位）。
+func _completion_signal_waiter() -> void:
+	while not _completion_signal_received:
+		await get_tree().process_frame
+
+
+# 完成信号回调：设置接收标志。
+func _on_completion_signal(_arg = null) -> void:
+	_completion_signal_received = true
+
+
+# 轮询等待某 group 清空；带上限（默认 60 秒）防死锁。
+func _await_group_empty(group_name: String) -> void:
+	var elapsed: float = 0.0
+	while get_tree().get_nodes_in_group(group_name).size() > 0:
+		await get_tree().create_timer(0.1).timeout
+		elapsed += 0.1
+		if elapsed > 60.0:
 			DebugState.debug_log(
-				"LevelManager: 未知关卡段类型 '%s'，跳过" % (segment.type if segment else "null"),
+				"LevelManager: 等待 group '%s' 清空超时，强制推进" % group_name,
 				"Level"
 			)
+			return
+
+
+# 轮询等待消息流播完（MessageController.is_busy）。
+func _await_messages_done() -> void:
+	var controller := get_tree().get_first_node_in_group(MessageController.GROUP_NAME) as MessageController
+	if controller == null:
+		DebugState.debug_log("LevelManager: 找不到 message_controllers，跳过消息等待", "Level")
+		return
+
+	while controller.is_busy():
+		await get_tree().create_timer(0.1).timeout
+
+
+# 执行小怪波次：按间隔依次生成敌人。非阻塞（completion=null），触发即完成。
+func _spawn_wave(segment: MinionWaveSegment) -> void:
+	var scene: PackedScene = segment.get_enemy_scene()
+	if scene == null:
+		DebugState.debug_log("LevelManager: 波次 enemy_scene 为空，跳过", "Level")
+		return
+
+	var positions: Array[Vector2] = segment.get_spawn_positions()
+	var count: int = segment.get_spawn_count()
+
+	for index in range(count):
+		if index > 0 and segment.get_spawn_interval() > 0.0:
+			await get_tree().create_timer(segment.get_spawn_interval()).timeout
+
+		var enemy_node: Node = scene.instantiate()
+		if positions.size() > 0:
+			enemy_node.position = positions[index % positions.size()]
+		else:
+			enemy_node.position = Vector2(
+				randf_range(32.0, 608.0),
+				-32.0
+			)
+		add_child(enemy_node)
+		DebugState.debug_log("LevelManager: 波次生成敌人 %d/%d" % [index + 1, count], "Level")
 
 
 # 等待入场延迟后实例化 Boss、注入召唤列表并连接所需信号。
