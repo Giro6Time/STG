@@ -1,8 +1,13 @@
 extends CharacterBody2D
 
+# A1 玩家生命周期：信号由外部监听者（LevelManager）执行清屏与 Game Over 响应。
+signal died(lives_left: int)   # 进入死亡状态时发出，lives_left 为扣减后的剩余残机
+signal respawned               # 重生完成（位置重置 + 无敌生效）后发出
+signal game_over               # 残机耗尽，Player 即将销毁
+
 @export var move_speed: float = 320.0
 @export var slow_speed: float = 140.0
-@export var max_hp: int = 3
+@export var max_hp: int = 1
 
 # 输入锁定开关：用于 Boss 登场/结算等演出瞬间锁定玩家操作。
 @export var input_enabled: bool = true
@@ -14,6 +19,11 @@ extends CharacterBody2D
 
 @export var bullet_scene: PackedScene
 @export var fire_interval: float = 0.08
+@export var max_lives: int = 3
+@export var respawn_delay: float = 1.0
+@export var respawn_position: Vector2 = Vector2(320, 600)
+@export var respawn_invincible_time: float = 3.0
+@export var hurt_invincible_time: float = 1.0
 
 @onready var shot_point: Marker2D = $ShotPoint
 @onready var hb_sprite: Sprite2D = $HBSprite
@@ -23,12 +33,21 @@ extends CharacterBody2D
 @onready var bullet_layer: BulletLayer = get_tree().get_first_node_in_group(BulletLayer.GROUP_NAME) as BulletLayer
 var _fire_timer: float = 0.0
 var hp: int = 0
+
+# A1 玩家生命周期状态
+const BLINK_INTERVAL: float = 0.1   # 无敌期间闪烁交替间隔
+
+var lives: int = 0
+var _is_dead: bool = false
+var _invincible_timer: float = 0.0
+var _blink_timer: float = 0.0
 var _hurted: bool = false
 
 # 初始化玩家血量并注册调试碰撞绘制。
 func _ready() -> void:
 	DebugHelper.register_debug_drawable(self)
 	hp = max_hp
+	lives = max_lives
 	_sync_graze_radius()
 	_connect_graze_area()
 
