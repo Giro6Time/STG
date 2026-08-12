@@ -56,7 +56,9 @@ func _on_player_game_over() -> void:
 	if player != null:
 		player.set_input_enabled(false)
 
-	get_tree().reload_current_scene()
+	# game_over 信号在物理回调中发出（子弹命中玩家触发），场景切换必须推迟到物理步进结束后，
+	# 否则 Godot 报 "Removing a CollisionObject node during a physics callback"。
+	get_tree().call_deferred("reload_current_scene")
 
 
 # 按顺序处理每个流程段；本次只有 boss 段，未知类型警告并跳过。
