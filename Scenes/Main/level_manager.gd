@@ -14,11 +14,49 @@ var boss: Boss
 
 # 按关卡配置异步装配：null 则警告并返回。
 func _ready() -> void:
+	_connect_player_signals()
+
 	if level_definition == null:
 		DebugState.debug_log("LevelManager: level_definition 为空，跳过", "Level")
 		return
 
 	_consume_segments()
+
+
+# 连接玩家生命周期信号：死亡清屏由本管理器响应，Game Over 重载场景。
+# 注：player.gd 未声明 class_name，故用无类型引用做鸭子类型访问（与 boss_base.get_player 风格一致）。
+func _connect_player_signals() -> void:
+	var player = get_node_or_null("Player")
+	if player == null:
+		DebugState.debug_log("LevelManager: 找不到 Player，跳过玩家生命周期接入", "Level")
+		return
+
+	if not player.died.is_connected(_on_player_died):
+		player.died.connect(_on_player_died)
+	if not player.game_over.is_connected(_on_player_game_over):
+		player.game_over.connect(_on_player_game_over)
+
+
+# 玩家死亡：清掉屏幕上的敌方子弹（保留玩家弹），重生安全交由 Player 状态机。
+func _on_player_died(_lives_left: int) -> void:
+	var layer := get_tree().get_first_node_in_group(BulletLayer.GROUP_NAME) as BulletLayer
+	if layer == null:
+		DebugState.debug_log("LevelManager: 找不到 bullet_layers，跳过死亡清屏", "Level")
+		return
+
+	layer.clear_enemy_bullets()
+	DebugState.debug_log("LevelManager: 死亡清屏完成", "Level")
+
+
+# 玩家残机耗尽：锁输入 + 重载当前场景（未来结算界面接入后改为切场景）。
+func _on_player_game_over() -> void:
+	DebugState.debug_log("LevelManager: Game Over，重载场景", "Level")
+
+	var player = get_node_or_null("Player")
+	if player != null:
+		player.set_input_enabled(false)
+
+	get_tree().reload_current_scene()
 
 
 # 按顺序处理每个流程段；本次只有 boss 段，未知类型警告并跳过。
