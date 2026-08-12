@@ -90,11 +90,11 @@ Player 内部不调 `clear_enemy_bullets()`，不调 `reload_current_scene()`。
 - **Boss 死亡联动**：Player 死亡时暂停 Boss 射击 / 让 Boss 无敌 / 清屏，后续 stage 在 LevelManager 的 `_on_player_died()` 中添加对 Boss 的信号调用即可
 - **残机 / HP 数值配置**：`max_lives` / `max_hp` / `hurt_invincible_time` / `respawn_invincible_time` 已全部参数化为 `@export`，可直接在 Inspector 或关卡配置中按难度调整
 - **Game Over 结算界面**：当前 `_on_player_game_over()` 只做 `reload_current_scene()`，替换为切场景到结算界面只需要改 LevelManager 的一行逻辑，`game_over` 信号无需变动
-- **重生位动态选择**：当前 `respawn_position` 固定 (320, 600)，可以扩展为根据弹幕密度或最近的 SaftyZone 动态计算
+- **重生位动态选择**：当前 `respawn_position` 固定 (320, 600)，可以扩展为根据弹幕密度或最近的 SafetyZone 动态计算
 
 ## 已知取舍
 
-- **重生位固定**：`respawn_position = (320, 600)` 是屏幕中下方，未做弹幕密度避让。这意味着存在重生瞬间被密集弹幕再次击中的风险。已知取舍，后续如有需要可引入 SaftyZone 概念
+- **重生位固定**：`respawn_position = (320, 600)` 是屏幕中下方，未做弹幕密度避让。这意味着存在重生瞬间被密集弹幕再次击中的风险。已知取舍，后续如有需要可引入 SafetyZone 概念
 - **Boss 死亡联动不做**：玩家死亡时 Boss 不会停火或进入无敌。这个交互留后续 stage
 - **HUD / UI 不做**：残机显示、Game Over 画面等 UI 不在 A1 范围。用户偏好后期集中做 UI
 - **LevelManager 作为临时监听者**：当前 LevelManager 承载了清屏和场景重载逻辑，这是 A1 最小接入的选择。level-flow-redesign 会把游戏流程编排迁移到专门的 GameFlow 节点，LevelManager 届时回归"关卡内容装配"的职责
