@@ -43,15 +43,15 @@ Player（自身行为，内部状态机）
 ├── 受击判定：take_damage() → HP 扣减
 │   ├── 血 > 0 → 受伤无敌（1s）继续战斗
 │   └── 血 ≤ 0 → 死亡状态
-├── 死亡状态：立即残机 -1 → 隐藏 + 锁输入 + 停止
-│   └── 发信号 died(lives_left)     ← 事件，外部执行
-├── 重生流程：1.0s 延迟 → 固定安全位 (320,600) → 恢复满血 → 3s 无敌 → 解锁输入
+├── 死亡状态：立即残机 -1 → 隐藏 + 禁本体碰撞 + 锁输入 + 停止
+│   ├── 发信号 died(lives_left)     ← 事件，外部执行
+│   └── lives_left > 0 ? 延迟重生 : 销毁 + game_over（去向由 Player 内部决定）
+├── 重生流程：1.0s 延迟 → 固定安全位 (320,600) → 恢复满血 + 恢复碰撞 → 3s 无敌 → 解锁输入
 │   └── 发信号 respawned            ← 事件，供外部同步
 └── 残机耗尽 → 销毁自身 + 发 game_over  ← 事件，外部执行
 
 外部（LevelManager，A1 最小接入）
 ├── 监听 died → 调 BulletLayer.clear_enemy_bullets()（清敌弹留玩家弹）
-├── 监听 died → lives_left > 0 ? 等待重生 : 触发 Game Over
 └── 监听 game_over → 锁输入 + 日志 + reload_current_scene()
 ```
 
@@ -72,7 +72,7 @@ Player（自身行为，内部状态机）
 
 ```gdscript
 # Player 对外信号（最终形态，监听者不关心）
-signal died(lives_left: int)        # 进入死亡状态时发出，lives_left 为扣减后剩余
+signal died(lives_left: int)        # 进入死亡状态时发出，lives_left 为扣减后剩余；去向由 Player 内部决定
 signal respawned                    # 重生完成（位置重置 + 无敌生效）后发出
 signal game_over                    # 残机耗尽，Player 即将销毁
 
@@ -94,7 +94,7 @@ func clear_enemy_bullets() -> void  # 仅回收敌方子弹，保留玩家弹
 | 情况 | 行为 |
 |---|---|
 | 无敌期间被弹 | `take_damage()` 直接返回（现有 `DebugState.invincible_enabled` 分支保留） |
-| 死亡流程中再次被弹 | 玩家已隐藏，无碰撞；状态机保证不会二次进入死亡 |
+| 死亡流程中再次被弹 | 死亡时已禁用本体碰撞（`CollisionShape2D.disabled`），无碰撞；状态机保证不会二次进入死亡 |
 | 重生位置在弹幕中 | 重生带 3s 无敌，足够脱离；Boss 联动停火留后续 stage |
 | BulletLayer 缺失 | `clear_enemy_bullets()` 判空跳过，不崩溃 |
 | 残机耗尽 | Player `queue_free()` + 发 `game_over`；外部重载场景 |

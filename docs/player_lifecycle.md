@@ -77,7 +77,7 @@ Player 内部不调 `clear_enemy_bullets()`，不调 `reload_current_scene()`。
 
 | 信号 | 参数 | 触发时机 | 含义 |
 |------|------|---------|------|
-| `died` | `lives_left: int` | 死亡时，残机已扣减 | "玩家死了一次"，lives_left 是剩余残机数。监听者据此决定重生 or Game Over 等行为 |
+| `died` | `lives_left: int` | 死亡时，残机已扣减 | "玩家死了一次"，lives_left 是剩余残机数。重生 or Game Over 由 Player 内部状态机决定并分别发 `respawned`/`game_over`；`lives_left` 供监听者参考（如显示剩余残机） |
 | `respawned` | 无 | 重生完成 | "玩家已回位且无敌生效"，可用于 HUD 刷新或演出触发 |
 | `game_over` | 无 | 残机耗尽，即将 `queue_free()` | "游戏结束"，Player 即将销毁。监听者应在此之前完成结算或场景切换 |
 
