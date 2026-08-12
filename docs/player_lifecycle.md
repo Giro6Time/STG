@@ -40,14 +40,14 @@ Player 内部不调 `clear_enemy_bullets()`，不调 `reload_current_scene()`。
 
 默认 `max_hp = 1`，被弹即死、残机减一。这个设计的意图是：
 
-- 当前游戏内容是 Boss 战，一命一残符合 STG 惯例
+- 当前游戏内容是 Boss 战，被弹即死、一弹一残的设定符合 STG 惯例
 - `max_hp > 1` 的扩展通道保留：`take_damage()` 在 `hp > 0` 时进入受伤无敌，后续设计多血条 Boss 或特殊机制时不需要重构血量体系
 
 这不是临时的简化，而是有意把"一血即死"当作 `max_hp = 1` 的默认配置，血 > 1 放在拓展方向里自然发生。
 
 ### 死亡即扣残机，一次广播决定去向
 
-`_start_death()` 的第一步就是 `lives -= 1`，然后 `died.emit(lives)`。时序是：
+`_start_death()` 在进入死亡状态后立即 `lives -= 1`，然后 `died.emit(lives)`。时序是：
 
 ```
 扣残机 → died 广播（lives 已扣减） → lives > 0 ? 等 respawn_delay 重生 : game_over + queue_free
@@ -89,7 +89,7 @@ Player 内部不调 `clear_enemy_bullets()`，不调 `reload_current_scene()`。
 
 - **Boss 死亡联动**：Player 死亡时暂停 Boss 射击 / 让 Boss 无敌 / 清屏，后续 stage 在 LevelManager 的 `_on_player_died()` 中添加对 Boss 的信号调用即可
 - **残机 / HP 数值配置**：`max_lives` / `max_hp` / `hurt_invincible_time` / `respawn_invincible_time` 已全部参数化为 `@export`，可直接在 Inspector 或关卡配置中按难度调整
-- **Game Over 结算界面**：当前 `_on_player_game_over()` 只做 `reload_current_scene()`，替换为切场景到结算界面只需要改 LevelManager 的一行逻辑，`game_over` 信号无需变动
+- **Game Over 结算界面**：当前 `_on_player_game_over()` 只做锁输入 + `reload_current_scene()`，替换为切场景到结算界面只需要改 LevelManager 的这一处逻辑，`game_over` 信号无需变动
 - **重生位动态选择**：当前 `respawn_position` 固定 (320, 600)，可以扩展为根据弹幕密度或最近的 SafetyZone 动态计算
 
 ## 已知取舍
