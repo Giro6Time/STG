@@ -30,6 +30,8 @@ signal game_over               # 残机耗尽，Player 即将销毁
 @onready var anim_player: AnimationPlayer = $AnimationPlayer
 @onready var graze_area: Area2D = $GrazeArea
 @onready var graze_shape: CollisionShape2D = $GrazeArea/CollisionShape2D
+@onready var body_collision: CollisionShape2D = $CollisionShape2D
+@onready var body_sprite: Sprite2D = $Sprite2D
 @onready var bullet_layer: BulletLayer = get_tree().get_first_node_in_group(BulletLayer.GROUP_NAME) as BulletLayer
 var _fire_timer: float = 0.0
 var hp: int = 0
@@ -95,11 +97,11 @@ func _update_invincibility(delta: float) -> void:
 
 	if _blink_timer <= 0.0:
 		_blink_timer = BLINK_INTERVAL
-		$Sprite2D.visible = not $Sprite2D.visible
+		body_sprite.visible = not body_sprite.visible
 
 	if _invincible_timer <= 0.0:
 		_invincible_timer = 0.0
-		$Sprite2D.visible = true
+		body_sprite.visible = true
 
 # 每个物理帧处理玩家移动和射击输入；输入锁定时保持静止。
 func _physics_process(delta: float) -> void:
@@ -197,6 +199,8 @@ func _start_death() -> void:
 
 	# 隐藏机身与判定点，锁定输入，避免死亡流程中继续移动/射击。
 	visible = false
+	# 禁用本体碰撞，避免隐藏的尸体继续吸收敌方子弹（GrazeArea 独立保留）。
+	body_collision.set_deferred("disabled", true)
 	set_input_enabled(false)
 
 	died.emit(lives)
@@ -218,7 +222,9 @@ func _respawn() -> void:
 	position = respawn_position
 	hp = max_hp
 	visible = true
-	$Sprite2D.visible = true
+	# 重生时恢复本体碰撞。
+	body_collision.disabled = false
+	body_sprite.visible = true
 	_invincible_timer = respawn_invincible_time
 	_blink_timer = 0.0
 	set_input_enabled(true)
