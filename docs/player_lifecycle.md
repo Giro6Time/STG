@@ -92,6 +92,16 @@ Player 内部不调 `clear_enemy_bullets()`，不调 `reload_current_scene()`。
 - **Game Over 结算界面**：当前 `_on_player_game_over()` 只做锁输入 + `reload_current_scene()`，替换为切场景到结算界面只需要改 LevelManager 的这一处逻辑，`game_over` 信号无需变动
 - **重生位动态选择**：当前 `respawn_position` 固定 (320, 600)，可以扩展为根据弹幕密度或最近的 SafetyZone 动态计算
 
+## 验证方式
+
+状态机核心时序（信号、残机扣减、重生、无敌、GameOver 销毁）有 headless 冒烟测试，可直接从编辑器运行或命令行跑：
+
+```powershell
+godot --headless --path <项目根> res://Scenes/Player/Test/player_lifecycle_smoke_test.tscn
+```
+
+测试用 `print()` 输出（`debug_log` 只写内存日志不打印控制台），通过时退出码 0。视觉表现（清屏动画、闪烁）仍需真人运行观察。
+
 ## 已知取舍
 
 - **重生位固定**：`respawn_position = (320, 600)` 是屏幕中下方，未做弹幕密度避让。这意味着存在重生瞬间被密集弹幕再次击中的风险。已知取舍，后续如有需要可引入 SafetyZone 概念
