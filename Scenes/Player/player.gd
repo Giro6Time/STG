@@ -1,8 +1,13 @@
 extends CharacterBody2D
 
+# A1 玩家生命周期：信号由外部监听者（LevelManager）执行清屏与 Game Over 响应。
+signal died(lives_left: int)   # 进入死亡状态时发出，lives_left 为扣减后的剩余残机
+signal respawned               # 重生完成（位置重置 + 无敌生效）后发出
+signal game_over               # 残机耗尽，Player 即将销毁
+
 @export var move_speed: float = 320.0
 @export var slow_speed: float = 140.0
-@export var max_hp: int = 3
+@export var max_hp: int = 1
 
 # 输入锁定开关：用于 Boss 登场/结算等演出瞬间锁定玩家操作。
 @export var input_enabled: bool = true
@@ -14,21 +19,37 @@ extends CharacterBody2D
 
 @export var bullet_scene: PackedScene
 @export var fire_interval: float = 0.08
+@export var max_lives: int = 3
+@export var respawn_delay: float = 1.0
+@export var respawn_position: Vector2 = Vector2(320, 600)
+@export var respawn_invincible_time: float = 3.0
+@export var hurt_invincible_time: float = 1.0
 
 @onready var shot_point: Marker2D = $ShotPoint
 @onready var hb_sprite: Sprite2D = $HBSprite
 @onready var anim_player: AnimationPlayer = $AnimationPlayer
 @onready var graze_area: Area2D = $GrazeArea
 @onready var graze_shape: CollisionShape2D = $GrazeArea/CollisionShape2D
+@onready var body_collision: CollisionShape2D = $CollisionShape2D
+@onready var body_sprite: Sprite2D = $Sprite2D
 @onready var bullet_layer: BulletLayer = get_tree().get_first_node_in_group(BulletLayer.GROUP_NAME) as BulletLayer
 var _fire_timer: float = 0.0
 var hp: int = 0
+
+# A1 玩家生命周期状态
+const BLINK_INTERVAL: float = 0.1   # 无敌期间闪烁交替间隔
+
+var lives: int = 0
+var _is_dead: bool = false
+var _invincible_timer: float = 0.0
+var _blink_timer: float = 0.0
 var _hurted: bool = false
 
 # 初始化玩家血量并注册调试碰撞绘制。
 func _ready() -> void:
 	DebugHelper.register_debug_drawable(self)
 	hp = max_hp
+	lives = max_lives
 	_sync_graze_radius()
 	_connect_graze_area()
 
@@ -64,6 +85,23 @@ func _on_graze_area_entered(area: Area2D) -> void:
 
 func _process(delta: float) -> void:
 	_hurted = false
+	_update_invincibility(delta)
+
+# 无敌帧递减与闪烁：无敌期间机身 sprite 交替可见；计时归零时恢复可见。
+func _update_invincibility(delta: float) -> void:
+	if _invincible_timer <= 0.0:
+		return
+
+	_invincible_timer -= delta
+	_blink_timer -= delta
+
+	if _blink_timer <= 0.0:
+		_blink_timer = BLINK_INTERVAL
+		body_sprite.visible = not body_sprite.visible
+
+	if _invincible_timer <= 0.0:
+		_invincible_timer = 0.0
+		body_sprite.visible = true
 
 # 每个物理帧处理玩家移动和射击输入；输入锁定时保持静止。
 func _physics_process(delta: float) -> void:
@@ -129,10 +167,12 @@ func _spawn_bullet() -> void:
 	)
 
 
-# 处理玩家受伤、日志输出和死亡判定。
+# 处理玩家受伤：无敌期间忽略；血 > 0 触发短暂受伤无敌；血 ≤ 0 进入死亡流程。
 func take_damage(damage: int) -> void:
 	if DebugState.invincible_enabled:
 		DebugState.debug_log("Player damage ignored: %d" % damage, "Player")
+		return
+	if _is_dead or _invincible_timer > 0.0:
 		return
 	if(_hurted == true): # 同一帧只能受伤一次，为后续清空弹幕做准备 
 		return
@@ -142,12 +182,54 @@ func take_damage(damage: int) -> void:
 	print("Player HP: ", hp)
 
 	if hp <= 0:
-		die()
+		_start_death()
+	else:
+		# 受伤未死：进入短暂无敌，避免被弹幕连续命中。
+		_invincible_timer = hurt_invincible_time
+		_blink_timer = 0.0
 
 
-# 玩家死亡时移除自身节点。
-func die() -> void:
-	queue_free()
+# 进入死亡流程：立即扣残机并广播 died（外部执行清屏）；剩余残机大于 0 延迟重生，
+# 否则销毁自身并广播 game_over（外部响应重载场景）。
+func _start_death() -> void:
+	_is_dead = true
+	velocity = Vector2.ZERO
+	lives -= 1
+	DebugState.debug_log("Player died, lives left: %d" % lives, "Player")
+
+	# 隐藏机身与判定点，锁定输入，避免死亡流程中继续移动/射击。
+	visible = false
+	# 禁用本体碰撞，避免隐藏的尸体继续吸收敌方子弹（GrazeArea 独立保留）。
+	body_collision.set_deferred("disabled", true)
+	set_input_enabled(false)
+
+	died.emit(lives)
+
+	if lives <= 0:
+		game_over.emit()
+		queue_free()
+		return
+
+	await get_tree().create_timer(respawn_delay).timeout
+	if not is_instance_valid(self) or _is_dead == false:
+		return
+	_respawn()
+
+
+# 重生：回到固定安全位、恢复满血、进入重生无敌帧并广播 respawned。
+func _respawn() -> void:
+	_is_dead = false
+	position = respawn_position
+	hp = max_hp
+	visible = true
+	# 重生时恢复本体碰撞。
+	body_collision.disabled = false
+	body_sprite.visible = true
+	_invincible_timer = respawn_invincible_time
+	_blink_timer = 0.0
+	set_input_enabled(true)
+	DebugState.debug_log("Player respawned", "Player")
+	respawned.emit()
 
 
 # 把玩家位置限制在当前视口范围内。
