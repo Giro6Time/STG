@@ -187,14 +187,43 @@ func take_damage(damage: int) -> void:
 		_blink_timer = 0.0
 
 
-# 死亡流程入口：Task 4 填充残机扣减/隐藏/重生；当前先保留旧 die() 行为。
+# 进入死亡流程：立即扣残机并广播 died（外部执行清屏）；剩余残机大于 0 延迟重生，
+# 否则销毁自身并广播 game_over（外部响应重载场景）。
 func _start_death() -> void:
-	die()
+	_is_dead = true
+	velocity = Vector2.ZERO
+	lives -= 1
+	DebugState.debug_log("Player died, lives left: %d" % lives, "Player")
+
+	# 隐藏机身与判定点，锁定输入，避免死亡流程中继续移动/射击。
+	visible = false
+	set_input_enabled(false)
+
+	died.emit(lives)
+
+	if lives <= 0:
+		game_over.emit()
+		queue_free()
+		return
+
+	await get_tree().create_timer(respawn_delay).timeout
+	if not is_instance_valid(self) or _is_dead == false:
+		return
+	_respawn()
 
 
-# 玩家死亡时移除自身节点。
-func die() -> void:
-	queue_free()
+# 重生：回到固定安全位、恢复满血、进入重生无敌帧并广播 respawned。
+func _respawn() -> void:
+	_is_dead = false
+	position = respawn_position
+	hp = max_hp
+	visible = true
+	$Sprite2D.visible = true
+	_invincible_timer = respawn_invincible_time
+	_blink_timer = 0.0
+	set_input_enabled(true)
+	DebugState.debug_log("Player respawned", "Player")
+	respawned.emit()
 
 
 # 把玩家位置限制在当前视口范围内。
