@@ -83,6 +83,23 @@ func _on_graze_area_entered(area: Area2D) -> void:
 
 func _process(delta: float) -> void:
 	_hurted = false
+	_update_invincibility(delta)
+
+# 无敌帧递减与闪烁：无敌期间机身 sprite 交替可见；计时归零时恢复可见。
+func _update_invincibility(delta: float) -> void:
+	if _invincible_timer <= 0.0:
+		return
+
+	_invincible_timer -= delta
+	_blink_timer -= delta
+
+	if _blink_timer <= 0.0:
+		_blink_timer = BLINK_INTERVAL
+		$Sprite2D.visible = not $Sprite2D.visible
+
+	if _invincible_timer <= 0.0:
+		_invincible_timer = 0.0
+		$Sprite2D.visible = true
 
 # 每个物理帧处理玩家移动和射击输入；输入锁定时保持静止。
 func _physics_process(delta: float) -> void:
@@ -148,10 +165,12 @@ func _spawn_bullet() -> void:
 	)
 
 
-# 处理玩家受伤、日志输出和死亡判定。
+# 处理玩家受伤：无敌期间忽略；血 > 0 触发短暂受伤无敌；血 ≤ 0 进入死亡流程。
 func take_damage(damage: int) -> void:
 	if DebugState.invincible_enabled:
 		DebugState.debug_log("Player damage ignored: %d" % damage, "Player")
+		return
+	if _is_dead or _invincible_timer > 0.0:
 		return
 	if(_hurted == true): # 同一帧只能受伤一次，为后续清空弹幕做准备 
 		return
@@ -161,7 +180,16 @@ func take_damage(damage: int) -> void:
 	print("Player HP: ", hp)
 
 	if hp <= 0:
-		die()
+		_start_death()
+	else:
+		# 受伤未死：进入短暂无敌，避免被弹幕连续命中。
+		_invincible_timer = hurt_invincible_time
+		_blink_timer = 0.0
+
+
+# 死亡流程入口：Task 4 填充残机扣减/隐藏/重生；当前先保留旧 die() 行为。
+func _start_death() -> void:
+	die()
 
 
 # 玩家死亡时移除自身节点。
