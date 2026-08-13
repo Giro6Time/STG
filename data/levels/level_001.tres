@@ -1,14 +1,9 @@
-[gd_resource type="Resource" script_class="LevelDefinition" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="LevelDefinition" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://Public/level/level_definition.gd" id="1_define"]
 [ext_resource type="Script" path="res://Public/level/level_segment.gd" id="2_seg"]
 [ext_resource type="Script" path="res://Public/level/boss_segment.gd" id="3_boss"]
 [ext_resource type="PackedScene" uid="uid://2r1iin0pml1l" path="res://Scenes/Boss/boss_base.tscn" id="4_boss_scene"]
-[ext_resource type="Script" path="res://Public/level/segment_completion.gd" id="5_completion"]
-
-[sub_resource type="Resource" id="Resource_completion"]
-script = ExtResource("5_completion")
-await_signal = "boss_died"
 
 [sub_resource type="Resource" id="Resource_boss_seg"]
 script = ExtResource("3_boss")
@@ -17,7 +12,6 @@ boss_scene = ExtResource("4_boss_scene")
 entrance_delay = 0.5
 spawn_position = Vector2(316, 134)
 phase_message_ids = {2: &"eye_phase_2"}
-completion = SubResource("Resource_completion")
 
 [resource]
 script = ExtResource("1_define")
