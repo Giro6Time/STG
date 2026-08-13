@@ -1,12 +1,12 @@
 class_name StateMachine
 extends RefCounted
 
-signal state_changed(previous_state: Node, current_state: Node)
+signal state_changed(previous_state: Object, current_state: Object)
 
 var _owner: Node
 var _states: Array = []
 var _transitions: Dictionary = {}
-var _current_state: Node
+var _current_state: Object
 
 
 # 初始化状态机的宿主和可用状态列表。
@@ -17,13 +17,13 @@ func setup(owner: Node, states: Array) -> void:
 	_current_state = null
 
 	for index in range(states.size()):
-		var state: Node = states[index] as Node
+		var state = states[index]
 		if state != null:
 			_states.append(state)
 
 
 # 登记一个允许从指定状态跳转到目标状态的关系。
-func add_transition(from_state: Node, to_state: Node) -> void:
+func add_transition(from_state: Object, to_state: Object) -> void:
 	if from_state == null or to_state == null:
 		return
 
@@ -31,7 +31,7 @@ func add_transition(from_state: Node, to_state: Node) -> void:
 
 
 # 从指定初始状态启动状态机生命周期。
-func start(initial_state: Node) -> void:
+func start(initial_state: Object) -> void:
 	if initial_state == null:
 		return
 
@@ -48,7 +48,7 @@ func update(delta: float) -> void:
 
 
 # 校验目标状态是否可达，并执行状态切换。
-func transition_to(next_state: Node) -> bool:
+func transition_to(next_state: Object) -> bool:
 	if next_state == null:
 		return false
 
@@ -63,7 +63,7 @@ func transition_to_next() -> bool:
 	if _current_state == null:
 		return false
 
-	var next_state: Node = _transitions.get(_current_state) as Node
+	var next_state: Object = _transitions.get(_current_state)
 	if next_state == null:
 		return false
 
@@ -71,7 +71,7 @@ func transition_to_next() -> bool:
 
 
 # 返回当前正在运行的状态节点。
-func get_current_state() -> Node:
+func get_current_state() -> Object:
 	return _current_state
 
 
@@ -81,8 +81,8 @@ func get_states() -> Array:
 
 
 # 执行退出旧状态、进入新状态和广播切换事件的核心流程。
-func _transition_to_internal(next_state: Node) -> bool:
-	var previous_state: Node = _current_state
+func _transition_to_internal(next_state: Object) -> bool:
+	var previous_state: Object = _current_state
 
 	if previous_state != null and previous_state.has_method("exit_state"):
 		previous_state.exit_state()
