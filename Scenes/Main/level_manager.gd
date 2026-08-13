@@ -1,9 +1,10 @@
 extends Node2D
 class_name LevelManager
 
-# 关卡纯编排器：读取 LevelDefinition，顺序消费流程段（激活 → 段自执行 → 完成）。
-# 内容生成在段类自身的 execute(context) 里；LevelManager 只负责时序编排与环境接口（register_boss）。
-# LevelManager 只在"何时叫段执行 / 何时发消息"，Boss 只提供动作与信号，双方不互相持有 UI/背景/玩家引用。
+# 关卡纯编排器：读取 LevelDefinition，用 StateMachine 按顺序驱动流程段（激活 → 运行 → 完成推进）。
+# 内容生成在段自身的状态机钩子（enter_state/update_state/exit_state）里；LevelManager 只负责
+# 时序编排与环境接口（register_boss / mark_segment_finished）。
+# LevelManager 只在"何时驱动段 / 何时发消息"，Boss 只提供动作与信号，双方不互相持有 UI/背景/玩家引用。
 
 @export var level_definition: LevelDefinition
 
@@ -12,11 +13,19 @@ var _phase_message_ids: Dictionary = {}
 
 var boss: Boss
 
-# 完成信号接收标志：供 _completion_signal_waiter 轮询。
-var _completion_signal_received: bool = false
+# 关卡段状态机：驱动段 enter/update/exit 生命周期。
+var _segment_machine: StateMachine = StateMachine.new()
+var _current_segment: LevelSegment
+var _segment_index: int = 0
+# 段完成标志：每段进入时重置，段通过 mark_segment_finished() 置位。
+var _segment_finished: bool = false
+# 激活阶段状态：start_delay 计时 + await_signal 等待。
+var _activating: bool = false
+var _activate_elapsed: float = 0.0
+var _activation_signal_received: bool = false
 
 
-# 按关卡配置异步装配：null 则警告并返回。
+# 按关卡配置装配：null 则警告并返回。构建段状态机后开始激活第一个段。
 func _ready() -> void:
 	_connect_player_signals()
 
@@ -24,7 +33,106 @@ func _ready() -> void:
 		DebugState.debug_log("LevelManager: level_definition 为空，跳过", "Level")
 		return
 
-	_consume_segments()
+	_build_segment_machine()
+	_current_segment = level_definition.segments[0] if level_definition.segments.size() > 0 else null
+	_begin_activation()
+
+
+# 构建段状态机：按顺序登记 transition（线性推进）。
+func _build_segment_machine() -> void:
+	var segments: Array[LevelSegment] = level_definition.segments
+	_segment_machine.setup(self, segments)
+	for index in range(segments.size() - 1):
+		if segments[index] != null and segments[index + 1] != null:
+			_segment_machine.add_transition(segments[index], segments[index + 1])
+
+
+# 开始激活当前段（等待 start_delay/await_signal 后进入运行）。
+# 注：_current_segment 由调用方先行指定（_ready 取首个段，_advance_to_next 取下一个段）。
+func _begin_activation() -> void:
+	_activating = true
+	_activate_elapsed = 0.0
+	_activation_signal_received = false
+	if _current_segment != null and not _current_segment.await_signal.is_empty():
+		_setup_activation_signal(_current_segment.await_signal)
+
+
+# 每帧驱动关卡：激活阶段计时/等信号 → 运行阶段 step 当前段 → 完成判定推进。
+func _process(delta: float) -> void:
+	if _activating:
+		_tick_activation(delta)
+		return
+
+	if _current_segment == null:
+		return
+
+	_segment_machine.update(delta)
+
+	if _segment_finished or _completion_timeout():
+		_advance_to_next()
+
+
+# 激活阶段：start_delay 计时 + await_signal 信号等待。
+func _tick_activation(delta: float) -> void:
+	_activate_elapsed += delta
+
+	if _current_segment == null:
+		_activating = false
+		return
+
+	if _current_segment.start_delay > 0.0 and _activate_elapsed < _current_segment.start_delay:
+		return
+
+	if not _current_segment.await_signal.is_empty() and not _activation_signal_received:
+		return
+
+	_activating = false
+	_segment_machine.start(_current_segment)
+
+
+# 完成超时判定：completion 非 null 且 wait_time > 0 且超时。
+# 段内计时用 _current_segment._elapsed（update_state 每帧累积，与状态机当前态同对象）。
+func _completion_timeout() -> bool:
+	if _current_segment == null or _current_segment.completion == null:
+		return false
+	return _current_segment.completion.wait_time > 0.0 \
+		and _current_segment._elapsed >= _current_segment.completion.wait_time
+
+
+# 推进到下一个段：当前段完成 → transition → 重置 flag → 进入下一段的激活阶段。
+func _advance_to_next() -> void:
+	var finished_segment: LevelSegment = _current_segment
+	_segment_machine.transition_to_next()
+	var next_state: Object = _segment_machine.get_current_state()
+
+	if next_state == null or next_state == finished_segment:
+		DebugState.debug_log("LevelManager: 关卡流程结束", "Level")
+		_current_segment = null
+		return
+
+	_current_segment = next_state as LevelSegment
+	_segment_finished = false
+	_begin_activation()
+	DebugState.debug_log("LevelManager: 段完成 %s，推进到 %s" % [finished_segment.type, _current_segment.type], "Level")
+
+
+# 环境接口：段自报完成时调用（段内连接自己的完成信号后触发）。
+func mark_segment_finished() -> void:
+	_segment_finished = true
+
+
+# 设置激活信号等待：连接映射表对应的信号 → 置 _activation_signal_received。
+func _setup_activation_signal(signal_name: String) -> void:
+	var signal_holder: Node = _get_signal_holder(signal_name)
+	if signal_holder == null:
+		DebugState.debug_log("LevelManager: 激活信号 '%s' 未注册，跳过等待" % signal_name, "Level")
+		return
+
+	match signal_name:
+		"boss_died":
+			signal_holder.died.connect(func(): _activation_signal_received = true)
+		"boss_phase_changed":
+			signal_holder.phase_changed.connect(func(): _activation_signal_received = true)
 
 
 # 连接玩家生命周期信号：死亡清屏由本管理器响应，Game Over 重载场景。
@@ -65,31 +173,6 @@ func _on_player_game_over() -> void:
 	get_tree().call_deferred("reload_current_scene")
 
 
-# 按顺序消费每个流程段：等待激活 → 执行段动作 → 等待完成（非阻塞段立即推进）。
-func _consume_segments() -> void:
-	for segment in level_definition.segments:
-		if segment == null:
-			continue
-		await _wait_for_activate(segment)
-		await _run_segment(segment)
-		await _wait_for_completion(segment)
-
-
-# 执行段动作：统一调段自身的 execute，不关心具体类型。未知/未实现类型由段基类警告跳过。
-func _run_segment(segment: LevelSegment) -> void:
-	await segment.execute(self)
-
-
-# 等待段激活条件：start_delay 计时（相对上一段触发）后，等待 await_signal 信号。
-# await_signal 为空则只等 start_delay。
-func _wait_for_activate(segment: LevelSegment) -> void:
-	if segment.start_delay > 0.0:
-		await get_tree().create_timer(segment.start_delay).timeout
-
-	if not segment.await_signal.is_empty():
-		await _await_signal_once(segment.await_signal)
-
-
 # 信号名 → 持有者节点映射。Resource 不持有场景对象，LevelManager 维护映射。
 # 新增信号名 = 这里加一行。
 func _get_signal_holder(signal_name: String) -> Node:
@@ -100,101 +183,6 @@ func _get_signal_holder(signal_name: String) -> Node:
 			return boss
 		_:
 			return null
-
-
-# 等待段完成：非阻塞（无有效 completion）立即返回；阻塞则按优先级链检查完成条件——
-# 首个非空条件生效（wait_time → await_signal → wait_group_empty → wait_messages_done），
-# 多条件同时设置时只取第一个，字段集是扩展点而非 OR 组合。
-# 防死锁：wait_time 超时兜底，wait_group_empty / wait_messages_done 轮询带上限。
-func _wait_for_completion(segment: LevelSegment) -> void:
-	if segment.is_non_blocking():
-		return
-
-	var completion: SegmentCompletion = segment.completion
-
-	if completion.wait_time > 0.0:
-		await get_tree().create_timer(completion.wait_time).timeout
-		return
-
-	if not completion.await_signal.is_empty():
-		await _await_signal_once(completion.await_signal)
-		return
-
-	if not completion.wait_group_empty.is_empty():
-		await _await_group_empty(completion.wait_group_empty)
-		return
-
-	if completion.wait_messages_done:
-		await _await_messages_done()
-		return
-
-	# completion 存在但全空：视为立即完成（防御）。
-	DebugState.debug_log("LevelManager: 完成条件为空，立即推进", "Level")
-
-
-# 等待某信号触发一次。信号名 → 实际信号通过 _get_signal_holder + match 解析。
-func _await_signal_once(signal_name: String) -> void:
-	var signal_holder: Node = _get_signal_holder(signal_name)
-	if signal_holder == null:
-		DebugState.debug_log(
-			"LevelManager: 信号 '%s' 未注册，视为立即完成" % signal_name,
-			"Level"
-		)
-		return
-
-	_completion_signal_received = false
-	match signal_name:
-		"boss_died":
-			if not signal_holder.died.is_connected(_on_completion_signal):
-				signal_holder.died.connect(_on_completion_signal)
-			await _completion_signal_waiter()
-		"boss_phase_changed":
-			if not signal_holder.phase_changed.is_connected(_on_completion_signal):
-				signal_holder.phase_changed.connect(_on_completion_signal)
-			await _completion_signal_waiter()
-		_:
-			DebugState.debug_log("LevelManager: 信号 '%s' 未处理" % signal_name, "Level")
-
-
-# 轮询等待完成信号接收标志（信号回调置位）。
-func _completion_signal_waiter() -> void:
-	while not _completion_signal_received:
-		await get_tree().process_frame
-
-
-# 完成信号回调：设置接收标志。
-func _on_completion_signal(_arg = null) -> void:
-	_completion_signal_received = true
-
-
-# 轮询等待某 group 清空；带上限（默认 60 秒）防死锁。
-func _await_group_empty(group_name: String) -> void:
-	var elapsed: float = 0.0
-	while get_tree().get_nodes_in_group(group_name).size() > 0:
-		await get_tree().create_timer(0.1).timeout
-		elapsed += 0.1
-		if elapsed > 60.0:
-			DebugState.debug_log(
-				"LevelManager: 等待 group '%s' 清空超时，强制推进" % group_name,
-				"Level"
-			)
-			return
-
-
-# 轮询等待消息流播完（MessageController.is_busy）。
-func _await_messages_done() -> void:
-	var controller := get_tree().get_first_node_in_group(MessageController.GROUP_NAME) as MessageController
-	if controller == null:
-		DebugState.debug_log("LevelManager: 找不到 message_controllers，跳过消息等待", "Level")
-		return
-
-	var elapsed: float = 0.0
-	while controller.is_busy():
-		await get_tree().create_timer(0.1).timeout
-		elapsed += 0.1
-		if elapsed > 60.0:
-			DebugState.debug_log("LevelManager: 等待消息播完超时，强制推进", "Level")
-			return
 
 
 # 环境接口：段执行时注册 Boss，供信号映射与转阶段消息转发使用。
