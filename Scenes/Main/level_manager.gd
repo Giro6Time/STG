@@ -98,9 +98,11 @@ func _completion_timeout() -> bool:
 		and _current_segment._elapsed >= _current_segment.completion.wait_time
 
 
-# 推进到下一个段：当前段完成 → transition → 重置 flag → 进入下一段的激活阶段。
+# 推进到下一个段：重置完成 flag → transition（exit 旧段 / enter 新段）→ 进入下一段的激活阶段。
+# 重置必须在 transition 之前：新段 enter_state 内若 mark_segment_finished，先重置才不会把旧段完成态带入新段。
 func _advance_to_next() -> void:
 	var finished_segment: LevelSegment = _current_segment
+	_segment_finished = false
 	_segment_machine.transition_to_next()
 	var next_state: Object = _segment_machine.get_current_state()
 
@@ -110,7 +112,6 @@ func _advance_to_next() -> void:
 		return
 
 	_current_segment = next_state as LevelSegment
-	_segment_finished = false
 	_begin_activation()
 	DebugState.debug_log("LevelManager: 段完成 %s，推进到 %s" % [finished_segment.type, _current_segment.type], "Level")
 

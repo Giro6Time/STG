@@ -45,6 +45,10 @@ func enter_state(owner: Node) -> void:
 	_spawned_count = 0
 	_alive_count = 0
 	_finished = false
+	# 空波次防护：count<=0 永不会生成敌人也不会触发完成信号，直接完成防死锁。
+	if get_spawn_count() <= 0:
+		_finished = true
+		_owner.mark_segment_finished()
 
 
 # StateMachine 钩子：段退出时锁定完成回调并断开残留敌人的 died 连接。

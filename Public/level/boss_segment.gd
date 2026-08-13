@@ -32,6 +32,7 @@ func exit_state() -> void:
 	_finished = true
 	if _boss != null and is_instance_valid(_boss) and _boss.died.is_connected(_on_boss_finished):
 		_boss.died.disconnect(_on_boss_finished)
+	_boss = null
 
 
 # StateMachine 钩子：每帧计时，entrance_delay 到后 spawn boss 并连接完成信号。

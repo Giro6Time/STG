@@ -1,7 +1,7 @@
 class_name Enemy
 extends Area2D
 
-# 敌人死亡信号：用于关卡段完成条件（wait_group_empty）计数与结算钩子。
+# 敌人死亡信号：用于小怪波次全灭跟踪（段自报完成）与结算钩子。
 signal died
 
 @export var max_hp: int = 10
