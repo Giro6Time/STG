@@ -1,6 +1,9 @@
 class_name Enemy
 extends Area2D
 
+# 敌人死亡信号：用于小怪波次全灭跟踪（段自报完成）与结算钩子。
+signal died
+
 @export var max_hp: int = 10
 @export var contact_damage: int = 1
 @export var bullet_scene: PackedScene
@@ -57,6 +60,7 @@ func take_damage(damage: int) -> void:
 # 销毁敌人节点并输出调试日志。
 func die() -> void:
 	DebugState.debug_log("Enemy destroyed", "Enemy")
+	died.emit()
 	queue_free()
 
 

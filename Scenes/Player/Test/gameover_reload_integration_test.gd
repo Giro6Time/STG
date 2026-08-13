@@ -10,12 +10,17 @@ extends Node
 const PLAYER_SCENE: PackedScene = preload("res://Scenes/Player/player.tscn")
 const ENEMY_BULLET_SCENE: PackedScene = preload("res://Scenes/Bullet/ConcreateScene/TomatoBullet.tscn")
 const LEVEL_MANAGER_SCRIPT: GDScript = preload("res://Scenes/Main/level_manager.gd")
+# 硬超时帧数（短测试，900 帧足够）：每帧检查，不依赖协程，
+# 任何卡住都会在超时帧数内强制退出。
+const HARD_TIMEOUT_FRAMES: int = 900
 
 # 跨场景重载持久（static 属于脚本类，场景重载后保留）：
 # false = 首次运行，负责创建攻击子弹；true = 重载后的实例，只验证并退出。
 static var _triggered: bool = false
 
 var _player
+var _finished: bool = false
+var _frame_count: int = 0
 
 
 func _ready() -> void:
@@ -52,10 +57,20 @@ func _spawn_attacking_bullet(manager: Node2D) -> void:
 	manager.add_child(bullet)
 
 
+# 每帧检查硬超时：不依赖协程，绝对可靠。任何卡住都会在超时帧数内强制退出。
+func _process(_delta: float) -> void:
+	_frame_count += 1
+	if _frame_count > HARD_TIMEOUT_FRAMES and not _finished:
+		push_error("%s hard timeout after %d frames" % [name, HARD_TIMEOUT_FRAMES])
+		get_tree().quit(1)
+
+
 func _verify_and_quit() -> void:
 	if _player.lives == 1 and _player.hp == 1 and _player.visible:
 		print("game_over reload integration test passed")
+		_finished = true
 		get_tree().quit(0)
 	else:
 		push_error("game_over reload integration test failed: 重载后玩家状态异常")
+		_finished = true
 		get_tree().quit(1)
