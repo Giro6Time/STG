@@ -16,7 +16,6 @@ var boss: Boss
 # 关卡段状态机：驱动段 enter/update/exit 生命周期。
 var _segment_machine: StateMachine = StateMachine.new()
 var _current_segment: LevelSegment
-var _segment_index: int = 0
 # 段完成标志：每段进入时重置，段通过 mark_segment_finished() 置位。
 var _segment_finished: bool = false
 # 激活阶段状态：start_delay 计时 + await_signal 等待。
@@ -122,6 +121,12 @@ func mark_segment_finished() -> void:
 
 
 # 设置激活信号等待：连接映射表对应的信号 → 置 _activation_signal_received。
+# 死锁警示（两个面，启用 await_signal 前需重新设计）：
+#   1. 持有者未注册死锁：若信号持有者（如 boss）在等待时尚未注册（首段即等待 / 由本段 enter 才注册），
+#      _get_signal_holder 返回 null → 仅打日志跳过连接 → 永久等待。
+#   2. 已发射信号死锁：等待一个在激活阶段开始前已触发过的信号，永远等不到。
+#   建议重新设计为：进入段时 connect / 退出段时 disconnect / 或对信号状态做快照，而非裸 await。
+#   当前数据未使用 await_signal，此处保留为兼容占位。
 func _setup_activation_signal(signal_name: String) -> void:
 	var signal_holder: Node = _get_signal_holder(signal_name)
 	if signal_holder == null:
