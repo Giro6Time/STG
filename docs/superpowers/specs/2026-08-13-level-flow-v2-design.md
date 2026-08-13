@@ -35,7 +35,10 @@
 5. **激活条件细分**：通用激活条件只做 `start_delay` + `await_signal`。
    **血量/成就等不做通用字段**——它们将来统一抽象为 flag，由专门的监测系统 set flag，
    段通过 flag 检查触发（`required_flag` 留到 flag 系统实现后，放条件段子类，不进基类）。
-6. **完成条件 = OR 语义**：`SegmentCompletion` 多字段任一满足即完成；
+6. **完成条件 = 优先级链（非 OR）**：`SegmentCompletion` 按固定顺序检查
+   （`wait_time` → `await_signal` → `wait_group_empty` → `wait_messages_done`），
+   命中首个非空条件即按该条件等待并完成；多字段同时设置只取第一个（不是 OR 组合）。
+   字段集是"扩展点"，供不同关卡取用其中一种语义，而非在同一段内组合多种条件。
    不引入 AND（AND 组合可用"拆两段 + 中间演出段"实现）。
 7. **完成条件字段**：`wait_time` / `await_signal` / `wait_group_empty` / `wait_messages_done`。
 8. **本次实现段类型**：`BossSegment`（已有，适配新模型）+ `MinionWaveSegment`（新增，实现但暂不配入关卡）。
@@ -54,7 +57,7 @@ LevelSegment (Resource, 基类)
 ├── @export var await_signal: String = ""          # 等某信号才触发本段（空 = 不等待）
 └── @export var completion: SegmentCompletion      # null = 非阻塞（触发即完成）
 
-SegmentCompletion (Resource)                       # 完成条件，多字段任一满足(OR)
+SegmentCompletion (Resource)                       # 完成条件，优先级链：首个非空字段生效
 ├── @export var wait_time: float = 0.0             # 等 N 秒（0 = 不用）
 ├── @export var await_signal: String = ""          # 等某信号（如 "boss_died"）
 ├── @export var wait_group_empty: String = ""      # 等某 group 节点清空（如 "enemies"）
@@ -91,7 +94,7 @@ LevelManager 维护"信号名 → 实际信号"映射表。Resource 不持有场
 
 信号响应（并行，不阻塞主推进）：
   - 段动作会注册信号监听（如 boss.died → 完成 Boss 段）
-  - completion 的 OR 条件任一满足 → 段完成 → 推进
+   - completion 的首个非空条件满足 → 段完成 → 推进
 ```
 
 **防死锁保障**：任何 completion 都有兜底（`wait_time` 超时或视为完成）；

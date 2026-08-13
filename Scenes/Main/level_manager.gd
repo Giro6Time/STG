@@ -70,7 +70,7 @@ func _consume_segments() -> void:
 		if segment == null:
 			continue
 		await _wait_for_activate(segment)
-		_run_segment(segment)
+		await _run_segment(segment)
 		await _wait_for_completion(segment)
 
 
@@ -106,8 +106,10 @@ func _get_signal_holder(signal_name: String) -> Node:
 			return null
 
 
-# 等待段完成：非阻塞（无有效 completion）立即返回；阻塞则 OR 条件任一满足即返回。
-# 防死锁：wait_time 超时兜底，wait_group_empty 轮询带上限。
+# 等待段完成：非阻塞（无有效 completion）立即返回；阻塞则按优先级链检查完成条件——
+# 首个非空条件生效（wait_time → await_signal → wait_group_empty → wait_messages_done），
+# 多条件同时设置时只取第一个，字段集是扩展点而非 OR 组合。
+# 防死锁：wait_time 超时兜底，wait_group_empty / wait_messages_done 轮询带上限。
 func _wait_for_completion(segment: LevelSegment) -> void:
 	if segment.is_non_blocking():
 		return
@@ -190,8 +192,13 @@ func _await_messages_done() -> void:
 		DebugState.debug_log("LevelManager: 找不到 message_controllers，跳过消息等待", "Level")
 		return
 
+	var elapsed: float = 0.0
 	while controller.is_busy():
 		await get_tree().create_timer(0.1).timeout
+		elapsed += 0.1
+		if elapsed > 60.0:
+			DebugState.debug_log("LevelManager: 等待消息播完超时，强制推进", "Level")
+			return
 
 
 # 执行小怪波次：按间隔依次生成敌人。非阻塞（completion=null），触发即完成。
@@ -208,7 +215,7 @@ func _spawn_wave(segment: MinionWaveSegment) -> void:
 		if index > 0 and segment.get_spawn_interval() > 0.0:
 			await get_tree().create_timer(segment.get_spawn_interval()).timeout
 
-		var enemy_node: Node = scene.instantiate()
+		var enemy_node: Node2D = scene.instantiate()
 		if positions.size() > 0:
 			enemy_node.position = positions[index % positions.size()]
 		else:

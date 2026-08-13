@@ -1,7 +1,7 @@
 extends Node
 
 # 关卡推进模型冒烟测试：验证 LevelManager 的三段式推进。
-# 覆盖：波次生成、wait_group_empty 阻塞/完成、信号映射。
+# 覆盖：波次生成、wait_group_empty 阻塞/完成、信号映射、真实 _consume_segments 骨架（Boss 段阻塞至 boss_died）。
 # 防挂死设计：_process 帧计数硬超时（不依赖协程，唯一兜底——GDScript 无 try/catch）。
 # 任何异常（协程静默死亡）或卡住都会在 HARD_TIMEOUT_FRAMES 帧内强制退出。
 
@@ -9,10 +9,13 @@ const LEVEL_MANAGER_SCRIPT: GDScript = preload("res://Scenes/Main/level_manager.
 const SEGMENT_SCRIPT: GDScript = preload("res://Public/level/level_segment.gd")
 const COMPLETION_SCRIPT: GDScript = preload("res://Public/level/segment_completion.gd")
 const MINION_WAVE_SCRIPT: GDScript = preload("res://Public/level/minion_wave_segment.gd")
+const BOSS_SEGMENT_SCRIPT: GDScript = preload("res://Public/level/boss_segment.gd")
 const ENEMY_SCENE: PackedScene = preload("res://Scenes/Enemy/enemy_base.tscn")
+const BOSS_SCENE: PackedScene = preload("res://Scenes/Boss/boss_base.tscn")
 
-# 硬超时：无论发生什么，超过该帧数即强制退出（60fps 下 10 秒）。绝不无限等待。
-const HARD_TIMEOUT_FRAMES: int = 600
+# 硬超时：无论发生什么，超过该帧数即强制退出（60fps 下 40 秒）。绝不无限等待。
+# 测试 4 加入了真实 Boss 场景 spawn（0.3s + 0.5s 等待），2400 帧留足余量。
+const HARD_TIMEOUT_FRAMES: int = 2400
 
 var _failures: Array[String] = []
 var _check_count: int = 0
@@ -20,6 +23,7 @@ var _manager: Node2D
 var _finished: bool = false
 var _frame_count: int = 0
 var _completion_done: bool = false
+var _consume_done: bool = false
 
 
 func _ready() -> void:
@@ -31,6 +35,7 @@ func _process(_delta: float) -> void:
 	_frame_count += 1
 	if _frame_count > HARD_TIMEOUT_FRAMES and not _finished:
 		push_error("Level flow smoke test hard timeout after %d frames" % HARD_TIMEOUT_FRAMES)
+		_finished = true
 		get_tree().quit(1)
 
 
@@ -93,6 +98,42 @@ func _run_tests() -> void:
 	_check(_manager._get_signal_holder("boss_died") == fake_holder, "boss_died 映射到 boss 节点")
 	_check(_manager._get_signal_holder("unknown") == null, "未注册信号返回 null")
 	fake_holder.free()
+
+	# 测试 4：_consume_segments 真实骨架 —— Boss 段阻塞至 boss_died。
+	# 用真实 BossSegment + boss_base.tscn 走通 LevelManager 完整推进链路。
+	# 注：真实 Boss 场景较"重"（阶段机/血条/弹幕 Pattern），但 headless 可正常实例化；
+	# 本测试在 Intro 阶段自动转场（0.8s）之前就杀死 Boss，不会进入需要玩家瞄准的弹幕阶段。
+	_manager.boss = null
+	var boss_seg: BossSegment = BOSS_SEGMENT_SCRIPT.new()
+	boss_seg.boss_scene = BOSS_SCENE
+	boss_seg.entrance_delay = 0.05
+	boss_seg.spawn_position = Vector2(320, 200)
+	var comp4: SegmentCompletion = COMPLETION_SCRIPT.new()
+	comp4.await_signal = "boss_died"
+	boss_seg.completion = comp4
+
+	var def4: LevelDefinition = LevelDefinition.new()
+	def4.segments = [boss_seg]
+	_manager.level_definition = def4
+
+	# 用独立协程启动消费（detached，不阻塞本测试）。
+	# 同测试 2：lambda 按值捕获局部变量，故用成员变量 _consume_done 传递完成标志。
+	_consume_done = false
+	var consume_waiter := func() -> void:
+		await _manager._consume_segments()
+		_consume_done = true
+	get_tree().create_timer(0.01).timeout.connect(consume_waiter)
+
+	# 等 Boss spawn（entrance_delay 0.05 + 余量）
+	await get_tree().create_timer(0.3).timeout
+	_check(_manager.boss != null, "Boss 已 spawn（_consume_segments 推进到 Boss 段）")
+	_check(not _consume_done, "Boss 存活时 _consume_segments 应阻塞在完成条件上")
+
+	# 杀死 Boss → 完成（die() 内部 emit died 后 queue_free）
+	if _manager.boss != null:
+		_manager.boss.die()
+	await get_tree().create_timer(0.5).timeout
+	_check(_consume_done, "boss_died 后 _consume_segments 完成")
 
 	_finish()
 
