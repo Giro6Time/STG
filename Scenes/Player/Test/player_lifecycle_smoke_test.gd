@@ -5,6 +5,9 @@ extends Node
 # 无敌期忽略伤害、GameOver 销毁。使用 print() 输出（debug_log 不打印到控制台）。
 
 const PLAYER_SCENE: PackedScene = preload("res://Scenes/Player/player.tscn")
+# 硬超时帧数（~200FPS headless × 9.2s ≈ 1840，取 2400 留余量）：
+# 每帧检查，不依赖协程，任何卡住都会在超时帧数内强制退出。
+const HARD_TIMEOUT_FRAMES: int = 2400
 
 var _failures: Array[String] = []
 var _check_count: int = 0
@@ -12,10 +15,20 @@ var _died_values: Array[int] = []
 var _respawned_count: int = 0
 var _game_over_count: int = 0
 var _player: CharacterBody2D
+var _finished: bool = false
+var _frame_count: int = 0
 
 
 func _ready() -> void:
 	call_deferred("_run_tests")
+
+
+# 每帧检查硬超时：不依赖协程，绝对可靠。任何卡住都会在超时帧数内强制退出。
+func _process(_delta: float) -> void:
+	_frame_count += 1
+	if _frame_count > HARD_TIMEOUT_FRAMES and not _finished:
+		push_error("%s hard timeout after %d frames" % [name, HARD_TIMEOUT_FRAMES])
+		get_tree().quit(1)
 
 
 # 实例化玩家、连接信号并逐步驱动死亡流程。
@@ -73,11 +86,13 @@ func _run_tests() -> void:
 
 	if _failures.is_empty():
 		print("Player lifecycle smoke test passed: %d checks" % _check_count)
+		_finished = true
 		get_tree().quit(0)
 		return
 
 	for failure in _failures:
 		push_error("Player lifecycle smoke test failed: %s" % failure)
+	_finished = true
 	get_tree().quit(1)
 
 
