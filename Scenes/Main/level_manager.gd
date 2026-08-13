@@ -1,8 +1,9 @@
 extends Node2D
 class_name LevelManager
 
-# 关卡装配器：读取 LevelDefinition，顺序消费流程段并实例化内容。
-# LevelManager 只在"何时叫 Boss / 何时发消息"，Boss 只提供动作与信号，双方不互相持有 UI/背景/玩家引用。
+# 关卡纯编排器：读取 LevelDefinition，顺序消费流程段（激活 → 段自执行 → 完成）。
+# 内容生成在段类自身的 execute(context) 里；LevelManager 只负责时序编排与环境接口（register_boss）。
+# LevelManager 只在"何时叫段执行 / 何时发消息"，Boss 只提供动作与信号，双方不互相持有 UI/背景/玩家引用。
 
 @export var level_definition: LevelDefinition
 
@@ -74,14 +75,9 @@ func _consume_segments() -> void:
 		await _wait_for_completion(segment)
 
 
-# 按段类型分发执行动作；未知类型警告并跳过。
+# 执行段动作：统一调段自身的 execute，不关心具体类型。未知/未实现类型由段基类警告跳过。
 func _run_segment(segment: LevelSegment) -> void:
-	if segment is BossSegment:
-		await _spawn_boss(segment as BossSegment)
-	elif segment is MinionWaveSegment:
-		_spawn_wave(segment as MinionWaveSegment)
-	else:
-		DebugState.debug_log("LevelManager: 未知关卡段类型 '%s'，跳过" % segment.type, "Level")
+	await segment.execute(self)
 
 
 # 等待段激活条件：start_delay 计时（相对上一段触发）后，等待 await_signal 信号。
@@ -201,55 +197,13 @@ func _await_messages_done() -> void:
 			return
 
 
-# 执行小怪波次：按间隔依次生成敌人。非阻塞（completion=null），触发即完成。
-func _spawn_wave(segment: MinionWaveSegment) -> void:
-	var scene: PackedScene = segment.get_enemy_scene()
-	if scene == null:
-		DebugState.debug_log("LevelManager: 波次 enemy_scene 为空，跳过", "Level")
-		return
-
-	var positions: Array[Vector2] = segment.get_spawn_positions()
-	var count: int = segment.get_spawn_count()
-
-	for index in range(count):
-		if index > 0 and segment.get_spawn_interval() > 0.0:
-			await get_tree().create_timer(segment.get_spawn_interval()).timeout
-
-		var enemy_node: Node2D = scene.instantiate()
-		if positions.size() > 0:
-			enemy_node.position = positions[index % positions.size()]
-		else:
-			enemy_node.position = Vector2(
-				randf_range(32.0, 608.0),
-				-32.0
-			)
-		add_child(enemy_node)
-		DebugState.debug_log("LevelManager: 波次生成敌人 %d/%d" % [index + 1, count], "Level")
-
-
-# 等待入场延迟后实例化 Boss、注入召唤列表并连接所需信号。
-func _spawn_boss(segment: BossSegment) -> void:
-	if segment.boss_scene == null:
-		DebugState.debug_log("LevelManager: boss_scene 为空，跳过本段", "Level")
-		return
-
-	await get_tree().create_timer(segment.entrance_delay).timeout
-
-	var boss_node: Node = segment.boss_scene.instantiate()
-	boss_node.position = segment.spawn_position
-	add_child(boss_node)
-
-	if boss_node is Boss:
-		boss = boss_node as Boss
-		boss.set_summonable_enemy_scenes(segment.summoned_enemy_scenes)
-		boss.phase_changed.connect(_on_boss_phase_changed)
-		boss.died.connect(_on_boss_died)
-		# entrance_finished: 本次保留出口信号，接入真实解锁/演出留给演出 stage。
-
-	# 记录本段的转阶段消息映射，供 phase_changed 时查询。
-	_phase_message_ids = segment.phase_message_ids
-
-	DebugState.debug_log("LevelManager: 已实例化 Boss", "Level")
+# 环境接口：段执行时注册 Boss，供信号映射与转阶段消息转发使用。
+func register_boss(boss_node: Boss, phase_message_ids: Dictionary) -> void:
+	boss = boss_node
+	_phase_message_ids = phase_message_ids
+	boss.phase_changed.connect(_on_boss_phase_changed)
+	boss.died.connect(_on_boss_died)
+	# entrance_finished: 本次保留出口信号，接入真实解锁/演出留给演出 stage。
 
 
 # Boss 转阶段：若该阶段在 BossSegment 配置了消息，则通过 MessageController 发送。

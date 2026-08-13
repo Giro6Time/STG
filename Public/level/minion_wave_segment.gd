@@ -28,3 +28,29 @@ func get_spawn_interval() -> float:
 
 func get_spawn_positions() -> Array[Vector2]:
 	return spawn_positions
+
+
+# 执行小怪波次：按间隔依次生成敌人。非阻塞（completion 默认 null），触发即完成。
+func execute(context: LevelManager) -> void:
+	var scene: PackedScene = get_enemy_scene()
+	if scene == null:
+		DebugState.debug_log("MinionWaveSegment: enemy_scene 为空，跳过", "Level")
+		return
+
+	var positions: Array[Vector2] = get_spawn_positions()
+	var count: int = get_spawn_count()
+
+	for index in range(count):
+		if index > 0 and get_spawn_interval() > 0.0:
+			await context.get_tree().create_timer(get_spawn_interval()).timeout
+
+		var enemy_node: Node2D = scene.instantiate()
+		if positions.size() > 0:
+			enemy_node.position = positions[index % positions.size()]
+		else:
+			enemy_node.position = Vector2(
+				randf_range(32.0, 608.0),
+				-32.0
+			)
+		context.add_child(enemy_node)
+		DebugState.debug_log("MinionWaveSegment: 生成敌人 %d/%d" % [index + 1, count], "Level")

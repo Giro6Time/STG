@@ -1,9 +1,9 @@
 class_name LevelSegment
 extends Resource
 
-# 关卡流程段基类。LevelManager 按类型分发消费。
+# 关卡流程段基类。LevelManager 按序消费，段通过 execute(context) 多态自执行。
 # 段三维度：开始时机(start_delay) / 激活条件(await_signal) / 完成语义(completion)。
-# 新增段类型 = 继承本类 + LevelManager 加一个分发分支。
+# 新增段类型 = 继承本类 + 实现 execute(context)，编排层零改动。
 
 ## 段类型标识（Inspector 直观区分，也用于日志与分发）。
 @export var type: String = ""
@@ -23,3 +23,9 @@ extends Resource
 # 判断本段是否为非阻塞（无有效完成条件即触发即完成）。
 func is_non_blocking() -> bool:
 	return completion == null or completion.is_empty()
+
+
+# 执行本段的动作。子类必须实现；未实现 = 该段类型不可执行（警告跳过）。
+# context 提供场景访问能力（Resource 不在场景树中，需要注入执行环境）。
+func execute(context: LevelManager) -> void:
+	DebugState.debug_log("LevelSegment: 类型 '%s' 未实现 execute()，跳过" % type, "Level")

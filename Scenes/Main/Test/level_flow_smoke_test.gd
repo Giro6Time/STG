@@ -53,7 +53,7 @@ func _run_tests() -> void:
 	wave.count = 3
 	wave.spawn_interval = 0.05
 	wave.spawn_positions = [Vector2(100, 100), Vector2(200, 100), Vector2(300, 100)]
-	await _manager._spawn_wave(wave)
+	await wave.execute(_manager)
 	await get_tree().create_timer(0.3).timeout
 	_check(get_tree().get_nodes_in_group("enemies").size() == 3,
 		"波次生成 3 个敌人，实际 %d" % get_tree().get_nodes_in_group("enemies").size())
