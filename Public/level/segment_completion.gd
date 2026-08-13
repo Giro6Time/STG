@@ -1,8 +1,8 @@
 class_name SegmentCompletion
 extends Resource
 
-# 关卡段的完成条件：多字段任一满足即完成（OR 语义）。
-# 全部为空时视为"立即完成"（等价于 completion 为 null 的非阻塞行为）。
+# 关卡段的完成条件：字段按优先级链检查，首个非空条件生效（不是真 OR 竞态）。
+# 全部为空时视为立即完成（等价于 completion 为 null 的非阻塞行为）。
 
 ## 等 N 秒后完成（0 = 不用时间条件）。
 @export var wait_time: float = 0.0

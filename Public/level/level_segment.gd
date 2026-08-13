@@ -16,7 +16,7 @@ extends Resource
 @export var await_signal: String = ""
 
 ## 完成语义：null 或空 = 非阻塞（触发即完成，不等待）。
-## 非空 = 阻塞，等 OR 条件任一满足才推进下一段。
+## 非空 = 阻塞，按优先级链首个非空条件生效（非真 OR 竞态）。
 @export var completion: SegmentCompletion
 
 
