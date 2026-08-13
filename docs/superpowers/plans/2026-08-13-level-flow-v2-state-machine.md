@@ -1,3 +1,5 @@
+> **⚠️ 已被覆盖**：本文档的部分决策（await_signal 激活机制、_begin_activation/_tick_activation/_setup_activation_signal/_get_signal_holder、entrance_delay）已在此后的重构中删除/合并（见 commit 286e8d2 与 docs/level_flow.md）。实现时以 docs/level_flow.md 与最新 spec 为准，勿按本文档旧代码实现。
+
 # Level Flow v2 状态机驱动实施计划
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

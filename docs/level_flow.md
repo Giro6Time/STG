@@ -1,26 +1,22 @@
 # 关卡流程编排系统说明
 
-本文说明关卡流程从"静态配置文件"到"StateMachine 分段驱动"的完整设计：段三维度模型、段自报完成机制、波次重叠、信号映射、段状态机钩子、段类型扩展与冒烟测试防挂死约定。核心目标是让"关卡内容 = 一段段带时机的编排描述"，LevelManager 只负责按序编排（激活 → 状态机驱动 → 段自报完成），内容生成由各段类型自己的状态机钩子（`enter_state` / `update_state` / `exit_state`）负责，流程控制与内容表现彻底解耦。
+本文说明关卡流程从"静态配置文件"到"StateMachine 分段驱动"的完整设计：段维度模型、段自报完成机制、波次重叠、段状态机钩子、段类型扩展与冒烟测试防挂死约定。核心目标是让"关卡内容 = 一段段带时机的编排描述"，LevelManager 只负责按序编排（进入 → 状态机驱动 → 段自报完成），内容生成由各段类型自己的状态机钩子（`enter_state` / `update_state` / `exit_state`）负责，流程控制与内容表现彻底解耦。
 
 ## 设计背景
 
 在引入本系统之前，关卡是"单一 Boss 场景 + 散落的硬编码时序"：Boss 何时入场、小怪波次如何穿插、Boss 死亡后流程如何收尾，全部以命令式代码散落在各处。新增一种关卡内容就要动编排代码，关卡与流程纠缠在一起，无法用数据描述一关。
 
-本系统的目标不是做一个功能完整的关卡编辑器，而是把"流程的骨架"从"内容的表现"中抽出来：关卡用一段 `LevelDefinition` 描述，每一段（Segment）只声明"什么时候开始、什么时候算完成、执行什么动作"，具体表现（Boss 动作、小怪波次、消息演出）由各段类型在状态机钩子里自己负责。LevelManager 是一个纯编排器，用 StateMachine 逐段驱动（激活 → 运行 → 段自报完成 → 推进），不持有任何表现层引用，只通过 `register_boss` 这类环境接口接收段执行时的注册信息。
+本系统的目标不是做一个功能完整的关卡编辑器，而是把"流程的骨架"从"内容的表现"中抽出来：关卡用一段 `LevelDefinition` 描述，每一段（Segment）只声明"什么时候开始执行、什么时候算完成、执行什么动作"，具体表现（Boss 动作、小怪波次、消息演出）由各段类型在状态机钩子里自己负责。LevelManager 是一个纯编排器，用 StateMachine 逐段驱动（进入 → 运行 → 段自报完成 → 推进），不持有任何表现层引用，只通过 `register_boss` 这类环境接口接收段执行时的注册信息。
 
-## 段三维度模型
+## 段维度模型
 
-每一段（`LevelSegment`）都由三个正交维度描述，各自只回答一个问题：
+每一段（`LevelSegment`）都由两个正交维度描述，各自只回答一个问题：
 
-### start_delay —— 什么时候开始
+### start_delay —— 什么时候开始执行
 
-相对"上一段触发"延迟 N 秒后才开始本段。0 = 上一段触发后立即开始。它只控制"开始的时机"，不涉及内容本身。
+段被确认进入（start）后延迟 N 秒才开始真正执行（演出/就位等待）。0 = 进入后立即执行。它只控制"开始执行的时机"，不涉及内容本身。
 
 设计意图：把"时间上的先后/重叠"从"内容"里剥离出来。两个段之间的间隙、波次与 Boss 的并行，都只是 `start_delay` 的取值问题，改配置即可，不写代码。
-
-### await_signal —— 被什么条件激活
-
-段开始前还要等某个信号才正式触发（空字符串 = 不等）。它和"段自报完成"是方向性的区别：这里的信号是"开始"条件，完成条件由段自己声明。信号名是字符串配置，通过 LevelManager 的信号映射表解析成实际节点信号（见下文约定），配置与代码以字符串契约连接。
 
 ### completion —— 完成超时兜底
 
@@ -33,19 +29,18 @@
 
 设计意图：把"完成的判定"从编排层彻底剥离——段最了解自己何时完成（Boss 段知道 Boss 何时死，波次段知道怪何时清空），因此由段自己上报；`wait_time` 只作为防死锁的兜底阀门。
 
-### 为什么三维分开
+### 为什么维度分开
 
-三个维度一旦合并（比如用单个 `delay + signal` 表达一切），会出现两类问题：一是"开始"与"完成"条件混在一起，无法表达"触发要等信号、完成要等信号"的完整时序；二是新增时序语义就要动既有字段，牵一发动全身。拆成三维后，每新增一种内容类型都只需要在这三个维度上取值，编排层代码零改动。
+"开始时机"与"完成兜底"一旦合并（比如用单个 `delay` 表达一切），新增时序语义就要动既有字段，牵一发动全身。拆开后，每新增一种内容类型都只需要在这两个维度上取值，编排层代码零改动。激活条件不再作为字段存在：激活即"进入"，段自身通过 `should_preempt()` 决定未来是否需要抢占插入（见下文抢占占位）。
 
 ## StateMachine 驱动与段自报完成机制
 
 ### 推进模型
 
-`LevelManager` 持有 `_segment_machine: StateMachine`（泛化的 `Public/state_machine.gd`），按 `LevelDefinition.segments` 顺序登记线性 transition。每帧 `_process` 的职责只有三件事：
+`LevelManager` 持有 `_segment_machine: StateMachine`（泛化的 `Public/state_machine.gd`），按 `LevelDefinition.segments` 顺序登记线性 transition。每帧 `_process` 的职责只有两件事：
 
-1. **激活阶段**：`start_delay` 计时 + `await_signal` 信号等待，满足后 `_segment_machine.start(当前段)`；
-2. **运行阶段**：`_segment_machine.update(delta)` 把每帧转发给当前段；
-3. **完成判定**：段自报完成（`_segment_finished` flag 置位）或 `wait_time` 超时 → `transition_to_next()` 推进。
+1. **运行**：`_segment_machine.update(delta)` 把每帧转发给当前段（`start_delay` 计时在段内做：段 `update_state` 里先 `super.update_state(delta)` 再用基类 `is_delay_elapsed()` 判断，延迟未过直接 return）；
+2. **完成判定**：段自报完成（`_segment_finished` flag 置位）或 `wait_time` 超时 → `transition_to_next()` 推进。
 
 没有任何 `await` 协程：时序推进完全由每帧轮询驱动，段的生命周期由底层 StateMachine 统一管理（enter → 每帧 update → exit）。
 
@@ -61,7 +56,7 @@
 
 段通过调用环境接口 `owner.mark_segment_finished()` 自报完成，LevelManager 置位 `_segment_finished` 后在当帧推进：
 
-- **BossSegment**：enter 时计时 `entrance_delay`，到时 spawn Boss 并连接 `boss.died`；Boss 死亡 → `mark_segment_finished()`。Boss 战阻塞至 Boss 死亡。
+- **BossSegment**：enter 后经基类 `start_delay`（`is_delay_elapsed()` 计时）延迟，到时 spawn Boss 并连接 `boss.died`；Boss 死亡 → `mark_segment_finished()`。Boss 战阻塞至 Boss 死亡。
 - **MinionWaveSegment**：update 每帧按 `spawn_interval` 生成敌人；全部生成且全部死亡 → `mark_segment_finished()`。
 
 两段都带"完成锁"（`_finished` flag + `exit_state` 断开连接）：段完成后迟到的完成信号被忽略，防止跨段污染。
@@ -70,7 +65,6 @@
 
 - 段完成信号永不触发时，由 `completion.wait_time > 0` 超时兜底强制推进并打日志——宁可跳过完成语义，不可卡死关卡。
 - `wait_time = -1` 或 `null` 是显式无限等待：等段完成信号。若信号真的不来会卡死，因此只有"完成条件绝对可靠"的段才建议无限等待。
-- `await_signal` 激活等待没有硬超时，这是有意的取舍：等待外部事件是最可靠的激活条件（事件发生了就必然触发），且信号未注册时 LevelManager 会只打日志并跳过连接，此时该段会永久等待（详见下文信号映射的死锁警示）。
 
 ## 波次重叠原理
 
@@ -80,16 +74,9 @@
 
 设计意图：**并行不需要"并行机制"**。只要完成条件允许"放完就走"（`wait_time` 超时提前放行），重叠就是自然的编排结果。若某天需要"打完这波才出 Boss"，把小怪段 `wait_time` 设为 `-1`（无限等）或去掉超时即可，编排层零改动。
 
-## 信号映射表约定
+## 抢占占位（should_preempt）
 
-`LevelSegment` / `SegmentCompletion` 是 Resource，Resource 不持有场景节点，因此"信号名 → 谁持有该信号"的映射由 LevelManager 统一维护（`_get_signal_holder` 的 match 分发）。新增一个信号名只需要：
-
-1. 在 `_get_signal_holder` 里加一行 match 分支，返回持有者节点；
-2. 在 `_setup_activation_signal` 里加对应的连接与信号名 match 分支。
-
-这是一张显式契约表：配置里写什么信号名，必须在表里找得到，否则视为跳过等待并打日志（见下方死锁警示）。约定它集中在 LevelManager 一处维护，是为了让"配置字符串 ↔ 实际信号"的对应关系有唯一事实来源，而不是散落在各处靠猜测。
-
-**激活信号死锁警示**（启用 `await_signal` 前需重新设计）：`_get_signal_holder` 返回 null 时只打日志跳过连接，此时若该段确实需要等信号会永久等待；等待一个在激活阶段开始前已触发过的信号也永远等不到。当前数据未使用 `await_signal`，此机制保留为兼容占位。
+`LevelSegment.should_preempt()` 默认返回 false。未来某段（如血量阈值/成就达成时立刻插入的段）覆写它，LevelManager 每帧询问所有段判断是否打断当前运行段、立刻进入本段。当前为占位，本版不实现抢占。
 
 ## 段类型扩展方式
 
@@ -98,7 +85,7 @@
 1. 继承 `LevelSegment`，实现 `enter_state` / `update_state` / `exit_state` 三个钩子（spawn 动作 + 每帧逻辑 + 清理），并在合适时机调用 `owner.mark_segment_finished()` 自报完成；
 2. 什么都不用改：`_segment_machine` 统一调度三个钩子，多态分发自动生效。
 
-`LevelManager._process` 的"激活 → 状态机驱动 → 完成判定"骨架是所有段类型共享的，不需要动。段通过基类的三维字段自动获得全部时序能力。
+`LevelManager._process` 的"状态机驱动 → 完成判定"骨架是所有段类型共享的，不需要动。段通过基类的维度字段自动获得全部时序能力。
 
 设计意图：段类型是"内容插件"而非"流程特例"。流程骨架一旦稳定，新增内容就变成纯增量，不会反向修改编排层——段对 LevelManager 只依赖三个状态机钩子签名与 `register_boss` / `mark_segment_finished` 环境接口，耦合是单向的。
 
@@ -120,10 +107,9 @@ Boss 结算、解锁等需要"条件门控"的功能在本版未实现，但数�
 - **流程与内容分离**：LevelDefinition 描述"什么时候做什么"，LevelManager 只编排，内容表现由段类型自治。
 - **StateMachine 统一驱动**：段生命周期（enter/update/exit）由泛化的 `Public/state_machine.gd` 管理，关卡段与 Boss 流程（`FlowPhaseMachine`）复用同一底层状态机；LevelManager 去 await，改为每帧驱动。
 - **段自报完成**：段通过 `mark_segment_finished()` 上报完成，`completion.wait_time` 只作超时兜底（>0 超时 / -1 无限 / null 无超时）。
-- **LevelManager = 纯编排器 + 环境接口**：只负责激活/每帧驱动/完成推进/信号映射/玩家生命周期/Boss 消息转发，内容生成零逻辑；段通过 `register_boss` 等接口回填编排所需信息。
-- **三维正交**：开始时机 / 激活条件 / 完成超时互不耦合，新内容在这三个维度上取值即可。
+- **LevelManager = 纯编排器 + 环境接口**：只负责每帧驱动/完成推进/玩家生命周期/Boss 消息转发，内容生成零逻辑；段通过 `register_boss` 等接口回填编排所需信息。
+- **维度正交**：开始时机 / 完成超时互不耦合，新内容在这两个维度上取值即可。
 - **并行靠数据不靠机制**：波次重叠靠 `wait_time` 超时提前放行，`-1` 不重叠。
-- **字符串契约集中维护**：信号名映射在 LevelManager 一处，有唯一事实来源。
 
 ## 待办（TODO）
 
@@ -133,4 +119,3 @@ Boss 结算、解锁等需要"条件门控"的功能在本版未实现，但数�
   - 波次与玩家位置/状态的交互（如追踪玩家、按玩家方位分布）
   - 触发后细节（入场演出、掉落声明）
 - **不引入专门 spawn 管理类**（当前切片段自管 spawn 足够，责任不溢出；等对象池等真实需求到来再评估）
-- **await_signal 死锁问题重新设计**：当前激活信号等待存在持有者未注册 / 已发射信号两种死锁面（见信号映射表约定），建议改为进入段时 connect / 退出段时 disconnect，当前数据未使用，留待启用前处理。

@@ -43,9 +43,9 @@
 6. **波次重叠语义**（靠超时兜底，不改语义）：
    - `wait_time > 0`：怪没死完但超时 → 强制完成 → 下一波进场 → 重叠
    - `wait_time = -1`：无限等怪死完 → 不重叠（清场间隙）
-7. **激活条件保留**：`start_delay`（相对上一段完成后计时）+ `await_signal`（等信号才开始，走 `_get_signal_holder` 映射）
+7. **激活条件简化：await_signal 删除**：`start_delay` 改为"段被确认进入（start）后延迟 N 秒才开始执行"（进入后延迟，段内计时，不再走激活阶段）。激活机制不再需要信号映射——LevelManager 保持纯编排器，不维护信号映射表（`_get_signal_holder` 连同激活阶段代码一并删除）。段激活由段自身决定：`should_preempt()` 占位（默认 false），未来某段覆写它实现抢占插入，LevelManager 每帧询问。
 8. **跳过条件不实现**（留扩展：未来激活条件加 `required_flag`）；信号配置化（Listener Resource）搁置——段内代码写死连接自己的完成信号
-9. **BossSegment.entrance_delay 保留**：`update_state` 计时（`_elapsed >= entrance_delay` 后 spawn），替代 await 计时
+9. **BossSegment.entrance_delay 合并进基类 start_delay**：两者同义（段进入后的延迟），`update_state` 用基类 `is_delay_elapsed()` 判断（`_elapsed >= start_delay` 后 spawn），替代 await 计时
 10. **LevelManager 去 await**：`_process` 每帧 step；删 `_wait_for_activate` / `_wait_for_completion` / `_await_signal_once` / `_completion_signal_waiter` 等协程编排方法（改为每帧检查）
 
 ## 架构
@@ -65,12 +65,11 @@ LevelSegment (Resource) —— 实现状态机钩子
 LevelManager (Node2D) —— 编排器
 ├── _segment_machine: StateMachine
 ├── _process(delta):
-│   ├── 激活阶段: start_delay 计时 + await_signal 检查
-│   └── 运行阶段: _segment_machine.update(delta)
-│       ├── _segment_finished or wait_time 超时 → transition_to_next()
+│   ├── _segment_machine.update(delta)（段内自管 start_delay 计时）
+│   └── _segment_finished or wait_time 超时 → transition_to_next()
 ├── mark_segment_finished(): 段完成 flag 置位
 ├── register_boss(node, phase_message_ids): 环境接口
-└── 保留: 玩家生命周期响应 / 信号映射 / 转阶段消息转发
+└── 保留: 玩家生命周期响应 / 转阶段消息转发
 ```
 
 ## 组件职责
@@ -78,7 +77,7 @@ LevelManager (Node2D) —— 编排器
 | 组件 | 职责 |
 |---|---|
 | StateMachine | 通用状态机核心（进入/退出/每帧 update/顺序切换） |
-| LevelSegment | 段基类：三维度字段 + 状态机钩子基实现 |
+| LevelSegment | 段基类：维度字段 + 状态机钩子基实现 + should_preempt 占位 |
 | SegmentCompletion | 只剩 wait_time（超时选项） |
 | BossSegment | spawn boss + 连接 boss.died → mark |
 | MinionWaveSegment | 按间隔生成 + 跟踪敌人 died，全死完 → mark |

@@ -22,7 +22,7 @@
 3. **残机扣减时机**：进入死亡状态**立即**扣残机，`died` 事件带出扣减后的剩余
    残机；外部收到一次广播即可决定"重生 or Game Over"，时序干净。
 4. **死亡清屏 = `clear_enemy_bullets()`**：仅回收敌方子弹，保留玩家弹继续飞行。
-   与 `docs/superpowers/specs/2026-08-10-level-flow-redesign.md` 规划的能力对齐，
+   与 `docs/level_flow.md` 规划的能力对齐，
    本 stage 实现该能力，胜利清屏后续复用。
 5. **通用无敌计时器**：`_invincible_timer` 统一管理，受伤无敌 ~1s / 重生无敌 ~3s
    只是参数；无敌期间玩家闪烁（Sprite 可见性交替）且正常移动射击。

@@ -1,7 +1,7 @@
 extends Node
 
 # 关卡推进状态机冒烟测试：验证 LevelManager 的 StateMachine 驱动。
-# 覆盖：MinionWave 生成与全灭完成、Boss 段阻塞至 died、_get_signal_holder 信号映射、
+# 覆盖：MinionWave 生成与全灭完成、Boss 段阻塞至 died、
 # _process 全链路驱动（wait_time 超时推进 + 末段完成后关卡结束）。
 # 防挂死：_process 帧计数硬超时 + try 无（GDScript 无）→ 帧计数兜底。
 
@@ -62,7 +62,7 @@ func _run_tests() -> void:
 	await _reset_manager_state()
 	var boss_seg: BossSegment = BOSS_SEGMENT_SCRIPT.new()
 	boss_seg.boss_scene = BOSS_SCENE
-	boss_seg.entrance_delay = 0.05
+	boss_seg.start_delay = 0.05
 	boss_seg.spawn_position = Vector2(320, 200)
 	boss_seg.enter_state(_manager)
 	for i in range(5):
@@ -73,10 +73,6 @@ func _run_tests() -> void:
 	_manager.boss.die()
 	await get_tree().create_timer(0.3).timeout
 	_check(_manager._segment_finished, "boss.died 后段完成 flag 置位")
-
-	# 测试 3：_get_signal_holder 映射
-	_check(_manager._get_signal_holder("boss_died") == _manager.boss, "boss_died 映射到 boss 节点")
-	_check(_manager._get_signal_holder("unknown") == null, "未注册信号返回 null")
 
 	# 测试 4：_process 全链路驱动（真实 LevelDefinition，由 LevelManager._process 编排）
 	# 段 1：MinionWave（wait_time=0.2 超时兜底，怪没死完也推进）→ 段 2：BossSegment
@@ -92,17 +88,17 @@ func _run_tests() -> void:
 
 	var boss_seg2: BossSegment = BOSS_SEGMENT_SCRIPT.new()
 	boss_seg2.boss_scene = BOSS_SCENE
-	boss_seg2.entrance_delay = 0.05
+	boss_seg2.start_delay = 0.05
 	boss_seg2.spawn_position = Vector2(320, 200)
 
 	var def2: LevelDefinition = LevelDefinition.new()
 	def2.segments = [wave2, boss_seg2]
 	_manager.level_definition = def2
 	_manager._build_segment_machine()
-	# 从第一个段重新激活（重置管理器到干净状态）
+	# 从第一个段重新启动（重置管理器到干净状态）
 	_manager._segment_finished = false
 	_manager._current_segment = def2.segments[0]
-	_manager._begin_activation()
+	_manager._segment_machine.start(_manager._current_segment)
 
 	# 等待驱动：段1 超时(0.2s)强制推进 → 段2 进入 → Boss spawn
 	await get_tree().create_timer(0.5).timeout
