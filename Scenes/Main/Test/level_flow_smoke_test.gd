@@ -1,12 +1,10 @@
 extends Node
 
 # 关卡推进状态机冒烟测试：验证 LevelManager 的 StateMachine 驱动。
-# 覆盖：Boss 段阻塞至 died、MinionWave 怪死完完成、start_delay 延迟、wait_time 超时。
+# 覆盖：MinionWave 生成与全灭完成、Boss 段阻塞至 died、_get_signal_holder 信号映射。
 # 防挂死：_process 帧计数硬超时 + try 无（GDScript 无）→ 帧计数兜底。
 
 const LEVEL_MANAGER_SCRIPT: GDScript = preload("res://Scenes/Main/level_manager.gd")
-const SEGMENT_SCRIPT: GDScript = preload("res://Public/level/level_segment.gd")
-const COMPLETION_SCRIPT: GDScript = preload("res://Public/level/segment_completion.gd")
 const BOSS_SEGMENT_SCRIPT: GDScript = preload("res://Public/level/boss_segment.gd")
 const MINION_WAVE_SCRIPT: GDScript = preload("res://Public/level/minion_wave_segment.gd")
 const ENEMY_SCENE: PackedScene = preload("res://Scenes/Enemy/enemy_base.tscn")
