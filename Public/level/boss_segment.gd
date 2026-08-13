@@ -12,22 +12,40 @@ extends LevelSegment
 ## 转阶段消息映射：phase_id -> 消息 id（写入 messages_zh.json）。LevelManager 在转阶段时触发。
 @export var phase_message_ids: Dictionary = {}
 
+# 段运行时状态：Boss 是否已生成。
+var _spawned: bool = false
 
-# 执行 Boss 段：等待入场延迟后实例化 Boss 并注册到关卡环境。
-func execute(context: LevelManager) -> void:
-	if boss_scene == null:
-		DebugState.debug_log("BossSegment: boss_scene 为空，跳过", "Level")
+
+# StateMachine 钩子：进入段时记录状态；实际 spawn 推迟到 entrance_delay 计时后。
+func enter_state(owner: Node) -> void:
+	super.enter_state(owner)
+	_spawned = false
+
+
+# StateMachine 钩子：每帧计时，entrance_delay 到后 spawn boss 并连接完成信号。
+func update_state(delta: float) -> void:
+	super.update_state(delta)
+	if _spawned:
+		return
+	if _elapsed < entrance_delay:
 		return
 
-	await context.get_tree().create_timer(entrance_delay).timeout
+	if boss_scene == null:
+		DebugState.debug_log("BossSegment: boss_scene 为空，跳过", "Level")
+		_owner.mark_segment_finished()
+		_spawned = true
+		return
 
 	var boss_node: Node = boss_scene.instantiate()
 	boss_node.position = spawn_position
-	context.add_child(boss_node)
+	_owner.add_child(boss_node)
 
 	if boss_node is Boss:
 		var boss: Boss = boss_node as Boss
 		boss.set_summonable_enemy_scenes(summoned_enemy_scenes)
-		context.register_boss(boss, phase_message_ids)
+		_owner.register_boss(boss, phase_message_ids)
+		# 段自己声明完成：Boss 死亡即本段结束。
+		boss.died.connect(func(): _owner.mark_segment_finished())
 
 	DebugState.debug_log("BossSegment: 已实例化 Boss", "Level")
+	_spawned = true

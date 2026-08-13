@@ -29,28 +29,49 @@ func get_spawn_interval() -> float:
 func get_spawn_positions() -> Array[Vector2]:
 	return spawn_positions
 
+# 段运行时状态：生成进度与存活敌人计数。
+var _spawned_count: int = 0
+var _alive_count: int = 0
 
-# 执行小怪波次：按间隔依次生成敌人。非阻塞（completion 默认 null），触发即完成。
-func execute(context: LevelManager) -> void:
-	var scene: PackedScene = get_enemy_scene()
-	if scene == null:
-		DebugState.debug_log("MinionWaveSegment: enemy_scene 为空，跳过", "Level")
-		return
 
-	var positions: Array[Vector2] = get_spawn_positions()
-	var count: int = get_spawn_count()
+# StateMachine 钩子：进入段时重置生成状态。
+func enter_state(owner: Node) -> void:
+	super.enter_state(owner)
+	_spawned_count = 0
+	_alive_count = 0
 
-	for index in range(count):
-		if index > 0 and get_spawn_interval() > 0.0:
-			await context.get_tree().create_timer(get_spawn_interval()).timeout
 
-		var enemy_node: Node2D = scene.instantiate()
+# StateMachine 钩子：每帧按间隔生成敌人；全部生成且全部死亡 → 段完成。
+func update_state(delta: float) -> void:
+	super.update_state(delta)
+	_spawn_pending_enemies()
+
+
+# 按生成间隔批量生成剩余敌人（一次 update 内尽量多生成，受间隔约束）。
+func _spawn_pending_enemies() -> void:
+	while _spawned_count < get_spawn_count():
+		if _spawned_count > 0 and _elapsed < _spawned_count * get_spawn_interval():
+			return
+		var enemy_scene: PackedScene = get_enemy_scene()
+		if enemy_scene == null:
+			DebugState.debug_log("MinionWaveSegment: enemy_scene 为空，跳过", "Level")
+			_owner.mark_segment_finished()
+			_spawned_count = get_spawn_count()
+			return
+		var enemy_node: Node2D = enemy_scene.instantiate()
+		var positions: Array[Vector2] = get_spawn_positions()
 		if positions.size() > 0:
-			enemy_node.position = positions[index % positions.size()]
+			enemy_node.position = positions[_spawned_count % positions.size()]
 		else:
-			enemy_node.position = Vector2(
-				randf_range(32.0, 608.0),
-				-32.0
-			)
-		context.add_child(enemy_node)
-		DebugState.debug_log("MinionWaveSegment: 生成敌人 %d/%d" % [index + 1, count], "Level")
+			enemy_node.position = Vector2(randf_range(32.0, 608.0), -32.0)
+		_owner.add_child(enemy_node)
+		_alive_count += 1
+		_spawned_count += 1
+		enemy_node.died.connect(_on_wave_enemy_died)
+
+
+# 敌人死亡回调：存活计数减一；全部生成且全部死亡 → 段完成。
+func _on_wave_enemy_died() -> void:
+	_alive_count -= 1
+	if _spawned_count >= get_spawn_count() and _alive_count <= 0:
+		_owner.mark_segment_finished()
