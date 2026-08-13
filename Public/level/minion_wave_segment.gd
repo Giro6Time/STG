@@ -1,8 +1,9 @@
 class_name MinionWaveSegment
 extends LevelSegment
 
-# 小怪波次段：声明本波刷什么敌人、刷多少、何时刷。非阻塞（completion 默认 null），
-# 触发即完成，配合 start_delay 形成并行波次（不等待上一波清空）。
+# 小怪波次段：声明本波刷什么敌人、刷多少、何时刷。
+# 段自报完成：本波敌人全部生成且全部死亡后 mark_segment_finished（配合超时兜底）。
+# 波次重叠由 LevelManager 的 wait_time 超时驱动（怪没死完超时→下一波进场）。
 
 ## 本波次生成的敌人场景。
 @export var enemy_scene: PackedScene
