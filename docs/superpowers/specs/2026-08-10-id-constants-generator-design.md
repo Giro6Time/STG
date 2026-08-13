@@ -1,7 +1,7 @@
 # 2026-08-10 ID 常量生成器设计（ID Constants Generator）
 
 > 背景：用户在 boss 流程重做设计中提出——要不要做工具把 message_id / audio_id 自动转成 enum。
-> 裁决：**做生成工具，且本期先行单独开工**；boss 流程重做延后（其 spec `2026-08-10-level-flow-redesign.md` 保留，
+> 裁决：**做生成工具，且本期先行单独开工**；boss 流程重做延后（其 spec `docs/level_flow.md` 保留，
 > 工具完成后回来重估）。
 
 ## 背景与目标
@@ -111,5 +111,5 @@ $PY = "C:\Users\31391\.cache\codex-runtimes\codex-primary-runtime\dependencies\p
 ## 后续方向（本期不做，记录）
 
 - **自动化一期**：pre-commit hook（`--check` 拦截 stale）+ 可选编辑器插件（保存时重生成）。
-- **回接 boss 流程重做**：工具完成后，回来重估 `2026-08-10-level-flow-redesign.md`，
+- **回接 boss 流程重做**：工具完成后，回来重估 `docs/level_flow.md`，
   `show_by_id` / `play_bgm` 调用点改用 `MessageId.XXX` / `AudioId.XXX`。
