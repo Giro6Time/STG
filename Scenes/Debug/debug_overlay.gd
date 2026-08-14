@@ -37,7 +37,7 @@ func _process(_delta: float) -> void:
 	var enemies: Array[Node] = get_tree().get_nodes_in_group("enemies")
 	fps_label.text = "FPS %d" % Engine.get_frames_per_second()
 	bullets_label.text = "Blt %s" % _get_bullet_stats()
-	graze_label.text = "Grz %d / %d" % [GrazeContext.total_graze, GrazeContext.graze_score]
+	graze_label.text = "Grz %d / Sc %d" % [GrazeContext.total_graze, ScoreManager.get_score()]
 	enemies_label.text = "Enemy %d" % enemies.size()
 	enemy_hp_label.text = _get_enemy_hp_text(enemies)
 	_refresh_static_text()

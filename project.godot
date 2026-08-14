@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 DebugState="*res://Public/debug_state.gd"
 GrazeContext="*res://Public/graze_context.gd"
+ScoreManager="*res://Public/score_manager.gd"
 AudioManager="*res://Scenes/Audio/audio_manager.tscn"
 
 [display]

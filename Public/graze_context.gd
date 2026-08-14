@@ -1,11 +1,10 @@
 extends Node
 
-signal grazed(total_graze: int, frame_graze_count: int, added_score: int)
-
-@export var score_per_graze: int = 10
+# 擦弹统计上下文（Autoload）：只负责擦弹次数统计与事件广播，不持有分数。
+# 评分规则与累加统一由 ScoreManager 执行（单一职责），本类不重复计分。
+signal grazed(total_graze: int, frame_graze_count: int)
 
 var total_graze: int = 0
-var graze_score: int = 0
 
 var _pending_grazes: Array[Dictionary] = []
 
@@ -29,11 +28,10 @@ func _process(_delta: float) -> void:
 # 清空累计数据，后续重开关卡或测试时可以显式调用。
 func reset() -> void:
 	total_graze = 0
-	graze_score = 0
 	_pending_grazes.clear()
 
 
-# 结算本帧全部擦弹并发出一次汇总信号。
+# 结算本帧全部擦弹并发出一次汇总信号（分数由 ScoreManager 汇入，本类只广播统计）。
 func _settle_pending_grazes() -> void:
 	var frame_graze_count: int = _pending_grazes.size()
 	if frame_graze_count <= 0:
@@ -42,13 +40,11 @@ func _settle_pending_grazes() -> void:
 	var feedback_position: Vector2 = _get_feedback_position()
 	_pending_grazes.clear()
 
-	var added_score: int = frame_graze_count * score_per_graze
 	total_graze += frame_graze_count
-	graze_score += added_score
 
 	play_graze_feedback(feedback_position)
-	DebugState.debug_log("Graze +%d total %d score %d" % [frame_graze_count, total_graze, graze_score], "Graze")
-	grazed.emit(total_graze, frame_graze_count, added_score)
+	DebugState.debug_log("Graze +%d total %d" % [frame_graze_count, total_graze], "Graze")
+	grazed.emit(total_graze, frame_graze_count)
 
 
 # 计算本帧擦弹反馈位置，当前只取平均点以保留后续特效入口。

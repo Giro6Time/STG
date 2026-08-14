@@ -113,9 +113,11 @@ func _on_player_died(_lives_left: int) -> void:
 	DebugState.debug_log("LevelManager: 死亡清屏完成", "Level")
 
 
-# 玩家残机耗尽：锁输入 + 重载当前场景（未来结算界面接入后改为切场景）。
+# 玩家残机耗尽：锁输入 + 重置分数 + 重载当前场景（未来结算界面接入后改为切场景）。
 func _on_player_game_over() -> void:
 	DebugState.debug_log("LevelManager: Game Over，重载场景", "Level")
+
+	ScoreManager.reset()
 
 	var player = get_node_or_null("Player")
 	if player != null:
@@ -150,6 +152,7 @@ func _on_boss_phase_changed(phase_id: int) -> void:
 	controller.show_by_id(msg_id)
 
 
-# Boss 死亡：结算入口占位（掉物/恢复/flag 留演出 stage）。
+# Boss 死亡：结算入口——加固定击破分（后续掉物/恢复/flag 留演出 stage）。
 func _on_boss_died() -> void:
-	DebugState.debug_log("LevelManager: Boss 死亡，结算入口待接入", "Level")
+	ScoreManager.add_score(ScoreManager.BOSS_DEFEAT_SCORE)
+	DebugState.debug_log("LevelManager: Boss 死亡，击破分 +%d" % ScoreManager.BOSS_DEFEAT_SCORE, "Level")

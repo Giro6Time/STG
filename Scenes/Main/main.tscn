@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://Scenes/Debug/debug_overlay.tscn" id="4_debug"]
 [ext_resource type="PackedScene" path="res://Scenes/Debug/debug_draw_layer.tscn" id="5_debug_draw"]
 [ext_resource type="PackedScene" path="res://Scenes/Message/message_layer.tscn" id="6_message_layer"]
+[ext_resource type="PackedScene" path="res://Scenes/Score/score_hud.tscn" id="7_score_hud"]
 [ext_resource type="Script" path="res://Scenes/Main/level_manager.gd" id="7_level_manager"]
 [ext_resource type="Resource" path="res://data/levels/level_001.tres" id="8_level_001"]
 
@@ -23,3 +24,5 @@ z_index = 0
 [node name="MessageLayer" parent="." unique_id=773640281 instance=ExtResource("6_message_layer")]
 
 [node name="DebugOverlay" parent="." unique_id=1922955264 instance=ExtResource("4_debug")]
+
+[node name="ScoreHUD" parent="." instance=ExtResource("7_score_hud")]

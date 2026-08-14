@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Scenes/Score/score_hud.gd" id="1_hud"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_score"]
+font_size = 20
+font_color = Color(1, 1, 1, 1)
+
+[node name="ScoreHUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+
+[node name="ScoreLabel" type="Label" parent="Margin/VBox"]
+layout_mode = 2
+text = "SCORE 0000000"
+horizontal_alignment = 1
+label_settings = SubResource("LabelSettings_score")
