@@ -2,7 +2,8 @@
 class_name ParameterSampler
 extends Resource
 
+## 参数采样器基类：决定"在曲线上取哪些 t 值"。
+## 子类实现 sample_values() 返回参数列表。
 
-# 返回本次采样要使用的参数列表，基类默认不产生采样。
 func sample_values() -> Array[float]:
 	return []

@@ -5,23 +5,12 @@
 [ext_resource type="PackedScene" path="res://Scenes/Boss/boss_health_bar.tscn" id="3_health_bar"]
 [ext_resource type="PackedScene" uid="uid://bltigg1aeycc0" path="res://Scenes/Bullet/ConcreateScene/TomatoBullet.tscn" id="4_bullet"]
 [ext_resource type="Script" uid="uid://bp4vs4wmqybco" path="res://Public/flow/flow_phase.gd" id="5_phase"]
-[ext_resource type="Script" uid="uid://bcd3etuwv4g48" path="res://Scenes/Boss/patterns/attack/boss_aimed_shot_pattern.gd" id="6_aimed_shot"]
 [ext_resource type="Script" uid="uid://bpoyqw0oqg6eh" path="res://Scenes/Boss/patterns/movement/boss_horizontal_sweep_movement.gd" id="7_horizontal_sweep"]
 [ext_resource type="Script" uid="uid://c4d7mx1slpdhi" path="res://Public/flow/flow_phase_machine.gd" id="8_phase_machine"]
 [ext_resource type="Script" uid="uid://dk1didxhddjfn" path="res://Scenes/Boss/patterns/boss_wait_pattern.gd" id="9_wait_pattern"]
-[ext_resource type="Script" uid="uid://bfvjn86vf6mky" path="res://Scenes/Boss/patterns/attack/boss_radial_wave_pattern.gd" id="10_radial_wave"]
-[ext_resource type="Script" uid="uid://8y0o16m4geyp" path="res://Scenes/Debug/debug_curve_preview_2d.gd" id="11_curve_preview"]
-[ext_resource type="Script" uid="uid://brnn2jfbx5xh8" path="res://Public/curve/circle_parametric_curve.gd" id="12_circle_curve"]
-[ext_resource type="Script" uid="uid://d1dqcp81hhboj" path="res://Public/sampler/uniform_parameter_sampler.gd" id="13_uniform_sampler"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_boss"]
 radius = 32.0
-
-[sub_resource type="Resource" id="Resource_radial_curve"]
-script = ExtResource("12_circle_curve")
-
-[sub_resource type="Resource" id="Resource_radial_sampler"]
-script = ExtResource("13_uniform_sampler")
 
 [node name="BossBase" type="Area2D" unique_id=1879226644]
 collision_layer = 4
@@ -55,7 +44,7 @@ transition_target_phase_ids = Array[int]([1])
 [node name="Phase1" type="Node" parent="Phases" unique_id=90071442]
 script = ExtResource("5_phase")
 phase_name = "Phase 1"
-pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep"), NodePath("Patterns/RadialWave")])
+pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep")])
 hp_ratio_below = 0.66
 transition_keys = Array[String](["hp_threshold"])
 transition_target_phase_ids = Array[int]([101])
@@ -67,19 +56,6 @@ script = ExtResource("7_horizontal_sweep")
 amplitude = 50.0
 sweep_speed = 1.2
 pattern_name = "Phase1 Horizontal Sweep"
-
-[node name="RadialWave" type="Node" parent="Phases/Phase1/Patterns" unique_id=235729419]
-script = ExtResource("10_radial_wave")
-curve = SubResource("Resource_radial_curve")
-sampler = SubResource("Resource_radial_sampler")
-bullet_scene = ExtResource("4_bullet")
-pattern_name = "Phase1 Radial Wave"
-
-[node name="CurvePreview" type="Node2D" parent="Phases/Phase1/Patterns/RadialWave" unique_id=1795212111]
-z_index = 4095
-script = ExtResource("11_curve_preview")
-curve = SubResource("Resource_radial_curve")
-sampler = SubResource("Resource_radial_sampler")
 
 [node name="Phase1To2Transition" type="Node" parent="Phases" unique_id=117703090]
 script = ExtResource("5_phase")
@@ -101,7 +77,7 @@ required_for_phase_completion = true
 script = ExtResource("5_phase")
 phase_id = 2
 phase_name = "Phase 2"
-pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep"), NodePath("Patterns/AimedShot")])
+pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep")])
 hp_ratio_below = 0.33
 transition_keys = Array[String](["hp_threshold"])
 transition_target_phase_ids = Array[int]([102])
@@ -113,12 +89,6 @@ script = ExtResource("7_horizontal_sweep")
 amplitude = 90.0
 sweep_speed = 1.6
 pattern_name = "Phase2 Wide Horizontal Sweep"
-
-[node name="AimedShot" type="Node" parent="Phases/Phase2/Patterns" unique_id=1666492501]
-script = ExtResource("6_aimed_shot")
-fire_interval = 0.75
-bullet_speed = 230.0
-pattern_name = "Phase2 Faster Aimed Shot"
 
 [node name="Phase2To3Transition" type="Node" parent="Phases" unique_id=1290898685]
 script = ExtResource("5_phase")
@@ -140,7 +110,7 @@ required_for_phase_completion = true
 script = ExtResource("5_phase")
 phase_id = 3
 phase_name = "Phase 3"
-pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep"), NodePath("Patterns/AimedShot")])
+pattern_paths = Array[NodePath]([NodePath("Patterns/HorizontalSweep")])
 
 [node name="Patterns" type="Node" parent="Phases/Phase3" unique_id=1505572163]
 
@@ -149,9 +119,3 @@ script = ExtResource("7_horizontal_sweep")
 amplitude = 120.0
 sweep_speed = 2.1
 pattern_name = "Phase3 Aggressive Horizontal Sweep"
-
-[node name="AimedShot" type="Node" parent="Phases/Phase3/Patterns" unique_id=1659917956]
-script = ExtResource("6_aimed_shot")
-fire_interval = 0.45
-bullet_speed = 280.0
-pattern_name = "Phase3 Rapid Aimed Shot"

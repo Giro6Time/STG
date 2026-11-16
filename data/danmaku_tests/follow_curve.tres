@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="BulletPatternConfig" format=3 uid="uid://dd5dpfk5fun1g"]
+
+[ext_resource type="Script" uid="uid://bjg1r7b7ekm80" path="res://Public/emitter/bullet_pattern_config.gd" id="1"]
+[ext_resource type="Script" uid="uid://brnn2jfbx5xh8" path="res://Public/curve/circle_parametric_curve.gd" id="2"]
+[ext_resource type="Script" uid="uid://d1dqcp81hhboj" path="res://Public/sampler/uniform_parameter_sampler.gd" id="3"]
+[ext_resource type="Script" uid="uid://c0rrlh4s8galh" path="res://Public/emitter/timeline/repeat_timeline_driver.gd" id="4"]
+[ext_resource type="Script" uid="uid://c3bp8nxvm0khm" path="res://Public/emitter/motion/follow_curve_motion.gd" id="5"]
+[ext_resource type="Script" uid="uid://wt43fq25jr6" path="res://Public/emitter/bullet_behavior_config.gd" id="6"]
+[ext_resource type="PackedScene" uid="uid://bltigg1aeycc0" path="res://Scenes/Bullet/ConcreateScene/TomatoBullet.tscn" id="7_scene"]
+
+[sub_resource type="Resource" id="motion_curve"]
+script = ExtResource("2")
+
+[sub_resource type="Resource" id="motion"]
+script = ExtResource("5")
+curve = SubResource("motion_curve")
+speed = 0.4
+
+[sub_resource type="Resource" id="bullet"]
+script = ExtResource("6")
+bullet_scene = ExtResource("7_scene")
+motion = SubResource("motion")
+
+[sub_resource type="Resource" id="emit_curve"]
+script = ExtResource("2")
+radius = 16.0
+
+[sub_resource type="Resource" id="sampler"]
+script = ExtResource("3")
+sample_count = 3
+
+[sub_resource type="Resource" id="timeline"]
+script = ExtResource("4")
+rounds = 8
+interval = 0.8
+
+[resource]
+script = ExtResource("1")
+display_name = "沿曲线"
+duration = 6.0
+curve = SubResource("emit_curve")
+sampler = SubResource("sampler")
+timeline = SubResource("timeline")
+bullet = SubResource("bullet")
