@@ -8,7 +8,7 @@
 [sub_resource type="Resource" id="Resource_boss_seg"]
 script = ExtResource("3_boss")
 boss_scene = ExtResource("4_boss_scene")
-entrance_delay = 0.5
+start_delay = 0.5
 spawn_position = Vector2(316, 134)
 phase_message_ids = {
 2: &"eye_phase_2"

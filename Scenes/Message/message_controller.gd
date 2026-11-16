@@ -64,6 +64,15 @@ func clear_queue() -> void:
 	_queue.clear()
 
 
+# 消息系统是否仍忙：队列未清空或消息框正在显示。供关卡段完成条件轮询。
+func is_busy() -> bool:
+	if _queue.size() > 0:
+		return true
+	if _message_box != null and _message_box.is_busy():
+		return true
+	return false
+
+
 # 隐藏当前消息并尝试显示队列中的下一条。
 func hide_current() -> void:
 	if _message_box != null:

@@ -51,7 +51,7 @@ func get_active_phase_id() -> int:
 
 # 让当前阶段执行退出逻辑，用于宿主死亡或清理。
 func shutdown() -> void:
-	var current_state: Node = _state_machine.get_current_state()
+	var current_state: Object = _state_machine.get_current_state()
 	if current_state != null and current_state is FlowPhase:
 		var phase: FlowPhase = current_state as FlowPhase
 		phase.exit_state()
@@ -121,7 +121,7 @@ func _try_transition(phase: FlowPhase, runtime_data: FlowPhaseRuntimeData) -> vo
 
 
 # 记录新阶段、重置计时并广播阶段变化。
-func _on_state_machine_state_changed(_previous_state: Node, current_state: Node) -> void:
+func _on_state_machine_state_changed(_previous_state: Object, current_state: Object) -> void:
 	active_phase = current_state as FlowPhase
 	_phase_elapsed = 0.0
 
